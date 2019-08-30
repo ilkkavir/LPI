@@ -1,0 +1,1044 @@
+%\VignetteIndexEntry{LPI tutorial}
+
+\documentclass[12pt,a4paper]{report}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+%\usepackage{times}
+\usepackage[utf8]{inputenc}
+
+\usepackage{color}
+\usepackage{times}
+\usepackage{mathptmx}
+%\usepackage{math}
+
+\usepackage{parskip}
+\usepackage{hyperref}
+
+
+\newcommand{\code}[1]{{\tt #1}}
+\newcommand{\aitem}[1]{\item[{\tt #1}]}
+\newcommand{\marl}[1]{\marginlabel{\em #1}}
+
+\newcommand{\ml}[1]{\marginlabel{{\bf #1}}}
+\newcommand{\ve}{\varepsilon}
+\newcommand{\Ran}{\operatorname{Ran}}
+\newcommand{\R}{{\mathbb R}}
+\newcommand{\env}{\mathrm{env}}
+
+\usepackage{listings}
+
+\lstdefinestyle{myC}{ %
+language=C,                % choose the language of the code
+basicstyle=\footnotesize\ttfamily,       % the size of the fonts that are used for the code
+numbers=left,                   % where to put the line-numbers
+numberstyle=\footnotesize\ttfamily,      % the size of the fonts that are used for the line-numbers
+stepnumber=1,                   % the step between two line-numbers. If it is 1 each line will be numbered
+numbersep=5pt,                  % how far the line-numbers are from the code
+backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=false,           % adds a frame around the code
+tabsize=4,          % sets default tabsize to 2 spaces
+captionpos=b,           % sets the caption-position to bottom
+breaklines=true,        % sets automatic line breaking
+breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
+escapeinside={\%*}{*)},          % if you want to add a comment within your code
+commentstyle=\footnotesize\color{blue}
+}
+
+\lstdefinestyle{myR}{ %
+language=R,                % choose the language of the code
+basicstyle=\footnotesize\ttfamily,       % the size of the fonts that are used for the code
+numbers=left,                   % where to put the line-numbers
+numberstyle=\footnotesize\ttfamily,      % the size of the fonts that are used for the line-numbers
+stepnumber=1,                   % the step between two line-numbers. If it is 1 each line will be numbered
+numbersep=5pt,                  % how far the line-numbers are from the code
+backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=false,           % adds a frame around the code
+tabsize=4,          % sets default tabsize to 2 spaces
+captionpos=b,           % sets the caption-position to bottom
+breaklines=true,        % sets automatic line breaking
+breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
+%escapeinside={\%*}{*)},          % if you want to add a comment within your code
+commentstyle=\footnotesize\color{blue}
+}
+
+
+
+%\usepackage{natbib}
+%\bibliographystyle{plainnat}
+
+
+\title{LPI \\
+Lag Profile Inversion \\
+EISCAT3D, Work Package 11, Task 11.4}
+\author{Ilkka Virtanen\\
+Department of Physics\\ University of Oulu, Finland}
+\date{Version 0.3-5 \\ \today}                                           % Activate to display a given date or no date
+
+\begin{document}
+
+
+%%\begin{fullpage}
+\maketitle
+%%\end{fullpage}
+
+
+
+\newpage
+
+\chapter*{License}
+{\small
+%\begin{verbatim}
+{\bfseries LPI (Lag Profile Inversion)}
+\vspace*{6pt}
+
+\noindent Copyright 2010--2013 University of Oulu, Finland. All rights reserved.
+\vspace*{6pt}
+
+\noindent
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
+\begin{enumerate}
+   \item Redistributions of source code must retain the above copyright 
+      notice, this list of conditions and the following disclaimer.
+   \item Redistributions in binary form must reproduce the above copyright 
+      notice, this list of conditions and the following disclaimer in 
+      the documentation and/or other materials provided with the distribution.
+\end{enumerate}
+\vspace*{6pt}
+
+\noindent
+THIS SOFTWARE IS PROVIDED BY THE UNIVERSITY OF OULU ``AS IS'' AND ANY EXPRESS 
+OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO 
+EVENT SHALL THE UNIVERSITY OF OULU OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+\vspace*{6pt}
+
+\noindent
+The views and conclusions contained in the software and documentation are 
+those of the authors and should not be interpreted as representing official 
+policies, either expressed or implied, of University of Oulu.
+
+%\end{verbatim}
+}
+
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+
+
+
+\chapter{Introduction}
+
+\section{Purpose of this document}
+
+
+Development and documentation of an incoherent scatter data analysis software based on the lag profile inversion paradigm was the Task 11.4 of the Work Pacakge 11 (Software theory and implementation) of the European Union's Framework 7 project EISCAT\_3D. This document serves as part of the final report of the Task 11.4 as well as a tutorial for the package and lag profile inversion in general. A standard user manual of the R package is provided as a separate document. 
+
+\section{Lag Profile Inversion}
+
+LPI is an R\footnote{R is a free open source software environment for statistical computing and graphics. It is licensed under GPL and it is available for various platforms. See \url{http://www.r-project.org} for details.} package for suppressing range ambiguities from incoherent scatter radar\footnote{The package was developed for IS radars, but it is in principle applicable for all kinds of radars.} lag profiles. LPI solves gated autocovariance function or cross-covariance function estimates from voltage level transmitter and receiver signal samples. LPI replaces traditional decoding techniques with a statistical-inversion-based approach, which makes it applicable to radar experiments that use almost arbitrary transmitter modulations. 
+
+
+\section{Installation}
+
+The package is distributed as a tarball (\verb|LPI_x.x.x.tar.gz|) which can be installed via the standard 
+
+\verb!R CMD INSTALL LPI!
+
+procedure (preceding \verb|sudo| is usually required in order to run the command as root). See \verb!R CMD INSTALL --help! for installation options. R version \verb!>= 2.14.0! is required. In order to enable the \verb|rlips| inverse problem solver also the \verb|rlips| package must be installed\footnote{Latest version of rlips is currently available at \href{http://www.sgo.fi/~m/pages/rlips.html}{http://www.sgo.fi/~m/pages/rlips.html}}, whether \verb|rlips| is installed before or after \verb|LPI| is not important. 
+
+
+
+\section{Help}\label{help}
+
+Standard R help pages are provided. They are collected together in the pdf file ``LPI-manual.pdf''. Both the manual and this document ``LPI-tutorial.pdf'' are contained in the distribution package as vignettes. The documents are stored in the distribution tarball (\verb|LPI_x.x.x.tar.gz|) in \verb|/inst/doc/|. 
+
+After installing the package the vignettes can be opened from R command line following the standard procedure
+<<eval=FALSE,echo=TRUE>>=
+  require(LPI)
+  vignette('LPI-manual')
+  vignette('LPI-tutorial')
+@ 
+
+The same help messages can be shown on command line as well
+<<eval=FALSE,echo=TRUE>>=
+  help(package='LPI')
+  help(LPI)
+@ 
+etc. 
+
+
+
+
+
+\chapter{Lag profile inversion}
+
+\section{Transmitter and receiver signals}
+
+A radar transmitter emits a modulated radio signal that can be expressed as product of a continuous coherent carrier signal $c(t)$ and a modulating transmitter envelope $\env(t)$. Because the carrier sigal contribution can be effectively removed by means of complex frequency mixing to baseband, we will neglect the carrier from this point on and consider only the transmitter envelope $\env(t)$.
+
+The transmitted modulated signal is scattered from a target and the scattered signal $s(t)$ enters a radar receiver. Because the receiver must have a finite impulse response $p(t)$, the final detected signal is convolution of the scattered signal entering the receiver and the impulse response
+\begin{equation}
+  z^r(t) = (s * p)(t).
+\end{equation}  
+We will later need also the similar convolution of the transmitter envelope and the receiver impulse response,
+\begin{equation}
+  z^t(t) = (\env * p)(t).
+\end{equation}  
+
+In reality, discrete signal samples will be recorded with a uniform sample interval $\Delta t$, which produces final recorded sample streams of discrete transmitter and receiver samples
+\begin{align}
+  z_i^t &= z^t(t_i)\\
+  z_i^r &= z^r(t_i)    
+\end{align}
+where $t_i = i\Delta t$.
+
+The receiver sample stream is not continuous in general, because monostatic radar systems cannot receive while transmitting. The transmitter sample stream will be effectively continuous because the transmitter envelope is known to be zero while the radar is not transmitting. The discontinuities in receiver sample stream have siginicant consequencies especially when detecting nearby targets with a monostatic high duty-cycle radar\footnote{Monostatic incoherent scatter radars typically have duty-cycles from 5 to 25 \%}.
+
+
+\section{Scattering from a target}
+
+If the transmitter signal hits reflecting point target at distance $R^t$ from the radar transmitter and $R^r$ from the receiver the signal entering the receiver can be expressed as
+\begin{equation}
+  s(t) = \xi \env(t-S)
+\end{equation}
+where  range $S$ is signal travel from the transmitter, via the target, to the receiver and $\xi$ is a complex coefficient. The signal is assumed to propagate at the speed of light $c$, allowing the range to be calculated as
+\begin{equation}
+  S = \frac{R^t+R^r}{c}.
+\end{equation}
+In monostatic systems the range reduces to $S = 2R^t/c$. The target does not need to be stationary as Doppler shifts can be absorbed in the complex coefficient $\xi$.
+
+If the taret is not point-like but covers a finite  range of distances, $[S_1 , S_2]$, the signal will be scattered from all parts of the target and the received signal can be written as
+\begin{equation}
+  s(t) = \int \limits_{S_1}^{S_2} \xi(S) \env(t-S) dS
+\end{equation}
+where $\xi(S)$ is a range-dependent complex coefficient.  This kind of target is said to be spread in range or range-spread. Notice that $\xi$ was defined as function of the total signal travel time $S$, and it will thus be different for two physically separeted receivers. 
+
+
+Finally, if amplitude or Doppler shift of the scattering changes as function of time, we must introduce a range and time dependent coefficient $\xi(S,t)$ and write the received signal as
+\begin{equation}
+  s(t) = \int \limits_{S_1}^{S_2} \xi(S,t) * \env(t-S) dS
+\end{equation}
+Likewise with range, the time-dependence of $\xi$ was expressed as function of signal reception time instead of the time of scattering. A target is said to be spectrally overspread or Doppler-spread  if power spectrum of any temporal variations is wider than inverse of signal travel time to and from the furthest part of the target.
+
+F region of the ionosphere is spread in both range and spectrum, while the D region alone is spread only in range. Because the above layers cannot be generally neglected when probing the D region the ionosphere as whole must be considered as a spread target in both range and Doppler. 
+
+
+\section{Target covariance functions}
+
+If scattering from any individual range $S$ is modeled as  a zero-mean random process, statistical properties of the target can be deduced from different covariance functions of received signals. 
+
+The basic data product of a radar is a set of signal autocovariance function estimates as function of range: $\sigma_a(S,\tau)$ where $\tau$ is time lag. This data product is measured by means of correlating a receiver sample stream with itself.  Similarily, it is possible to correlate sample streams from two physically separate receivers in order to detect  crosscorrelation function as function of range $\sigma_c(S,\tau)$. It is also possible that the crosscorrelation function is calculated in between sample streams recorded with the same device but at orthogonal polarizations. This kind of arrangement is used in orthogonal polarization coding and in Faraday rotation measurements. 
+
+\section{Lag profiles}
+
+The autocovariance function as function of range $\sigma(S,\tau)$ was previously considered. The formulation essentially deals with fixing a range $S$ and defining the autocovariance fucntion of the scattering process at the given range. 
+
+Instead of fixing a range one can fix a time lag and deal with the resulting range profiles as well. These fixed time lags of covariance function as function of range are called lag profiles. Denoting the lag profile at lag $\tau_i$ with $\rho_i(S)$ we will have
+\begin{equation}
+  \rho_i(S)=\sigma(S,\tau_i)
+\end{equation}
+
+\section{Range ambiguity functions}
+
+Expectation value of the product 
+\begin{equation}
+  m_{i,j} = z^r(t_i)\overline{z^r(t_j)}
+\end{equation}
+can be written as
+\begin{equation}
+  <m_{i,j}> = \int \limits_{S_1}^{S_2}W(t_i,t_j,S)\sigma(S,t_i-t_j) dS
+\end{equation}
+where $W(t,t',S)$ is the range ambiguity function,
+\begin{equation}
+  W(t,t',S) = z^t(t-S) \overline{z^t(t'-S)}.
+\end{equation}
+It is thus possible to write each product $m(t,t')$ as
+\begin{equation}
+  m_{i,j} = \int \limits_{S_1}^{S_2}W(t_i,t_j,S)\sigma(S,t_i-t_j) dS + \varepsilon(t_i,t_j)
+  \label{eqmc}
+\end{equation}
+where the last term is random noise.
+
+\section{Radar measurement as a linear inverse problem}
+
+If the target is divided into discrete range gates the measurement (\ref{eqmc}) can be written as sum
+\begin{equation}
+  m_{i,j} = \sum \limits_{k=k_1}^{k_2}W_{i,j,k}\sigma_{k,i-j} + \varepsilon_{i,j}
+\end{equation}
+where the coefficients $W_{i,j,k}$ can be calculated from the continuous range ambiguity function. 
+
+In real measurements only discrete signal samples are available and the coefficients must be approximated from products of these samples. Oversampling or interpolation is generally needed in order to achieve sufficient accuracy. 
+
+
+When all measurements of a given lag are collected together one can form a linear inverse problem
+\begin{equation}
+  \mathbf{m}_{l} = \mathbf{W}_l \mbox{\boldmath{$\rho$}}_l + \mbox{\boldmath{$\varepsilon$}}_l 
+\end{equation}
+where the measurement vector $\mathbf{m}_l$ is a column vector of measurements $m_{i,i+l}, i=0,1,2,\ldots$, the theory matrix $\mathbf{W}_l$ contains the coefficients $W_{i,i+l,k}$, $\mbox{\boldmath{$\rho$}}_l$ is the unknown discrete lag profile and $\mbox{\boldmath{$\varepsilon$}}_l$ is random noise. If the noise is zero-mean and gaussian the Maximum Aposteriori (MAP) estimate of the lag profile is
+\begin{align}
+  \hat{\mbox{\boldmath{$\rho$}}}_l &= \mathbf{Q}_l^{-1}\mathbf{W}_l^H\mbox{\boldmath{$\Sigma$}}_l^{-1} \mathbf{m}\\
+  \mathbf{Q}_l &= \mathbf{W}_l^H\mbox{\boldmath{$\Sigma$}}_l^{-1}\mathbf{W}_l
+\end{align}
+where $\mbox{\boldmath{$\Sigma$}}_l$ is the measurement error covariance matrix and $\mathbf{Q}_l$ is called Fisher information matrix. Posterior noise covariance matrix of the resolved lag profile is inverse matrix of the Fisher information matrix.
+
+This formal solution is not practical for real life lag profile inversion. Instead of directly forming the theory matrix special solvers, such as \verb|rlips|, are used which allow the theory matrix to be formed in smaller blocks.
+
+\section{Additional analysis steps}
+
+
+\subsection{Ground clutter suppression}
+
+Although radar beams are nominally pointed towards the ``empty'' sky, there are always antenna sidelobes, some of which are pointed towards the terrain surrounding the radar transmitter. In monostatic radar systems this leaked signal may be reflected back towards the receiver antenna. The reflected signal may leak to the receiver through the same sidelobes, causing  echoes called ground clutter. The ground clutter may be much stronger than the true ionospheric signal and should be suppressed in low altitude ionospheric measurements. 
+
+The ground clutter signal is possible to suppress because the scattering target is known to be stationary. It is thus possible to estimate an average clutter profile from voltage level data and to suppress it prior to correlation. 
+
+\subsection{Voltage level decoding}
+
+Incoherent scatter spectrum in the ionospheric D region is rather narrow and it becomes possible to decode the received data at voltage level prior to lag profile inversion. After voltage level decoding the signal will correspond to a measurement with short pulses mathced to the measurement range resolution. It is thus possible to calculate only a rather small number of time lags and, furthermore, to replace the general lag profile inversion with simple averaging of lagged products. Voltage level decoding thus provides a possibility for very fast inversion of D region lag profiles.  However, one should be very careful when measuring short time lags with this technique, because it may allow F region echoes to aliase on top of the true D region signal. 
+
+
+
+
+\chapter{LPI implementation}
+
+\section{Resampling and filtering}
+
+Both transmitter and receiver samples are filtered and decimated to a common sample rate before lag profile inversion. Non-integer (but rational) fraction down sampling is supported. The resampling reduces to a boxcar filter if the filter length is a multiple of the original sample interval. 
+
+\section{Ground clutter suppression}
+
+LPI contains an optional ground clutter suppression algorithm. It uses statistical inversion for estimating the average backscatter at voltage level and subtracts the convolution of the estimated signal and the transmitter samples from the receiver samples. %This technique is essentially one of the options discussed in \citep{turunen00}. At the limit of identical transmitter pulses the technique can be shown to reduce to subtraction of an averaged clutter profile \citep{lehtinen02}.
+This technique is statistically optimal in the sense that only one clutter profile per integration period is produced, which allows it to be estimated with high accuracy. Increase in noise power due to clutter suppression is thus minimized. The long coherent integration could make the technique inefficient when the clutter source is not exactly stationary. On the other hand, the technique does not set any requirements for the transmitter modulation, which is very advantageous when it is combined e.g. with multi-purpose modulations.% \citep{virtanen08a,virtanen09}.
+
+
+\section{Voltage level decoding filters}
+
+Voltage level decoding with given filter coefficients, as well as  both matched and inverse filters using measured transmission envelopes, are supported. With given coefficients both TX and RX data vectors are simply convolved with the given filter. 
+
+With the matched and inverse filters the filter coefficients are calculated from the TX data vectors and the decoding is performed one inter-pulse period at a time. The analysis should thus not continue above the range of the shortest IPP when the voltage level decoding is enabled.  The further analysis is performed assuming that the filter would have completely removed range ambiguities from the filtered data. As a consequence, lag profiles calculated with voltage level matched filter will generally contain range ambiguities. These ambiguities will be severy in true power profiles, but, depending on the applied modulation, may be neglectable at longer lags. 
+
+\section{Data correlation}
+
+Lag profile inversion requires two kinds of correlated data products to be produced: lagged products of the receiver samples and the range ambiguity functions. 
+
+The lagged products of the receiver samples can be trivially calculated from the filtered and decimated data. The range ambiguity functions can be calculated in a similar manner if the final sample interval is clearly shorter than modulation bit length, or if the applied modulation is a strong phase code. 
+
+Otherwise an approximation of the continuous transmission envelope is needed for calculating the range ambiguity function. LPI contains an option for interpolating the transmitter samples to higher sample rate before calculating the range ambiguity functions. When this option is enabled, the transmitter samples will be oversampled by factor of 11 by means of linear interpolation. The technique is not exactly optimal as the signal is first decimated and then imperfectly resampled, but it provides reasonably good range ambiguity function  estimates when the transmitted bits have relatively sharp edges. 
+
+\section{Theory matrix}
+
+The inversion theory matrix is constructed in blocks whose size is given as an input argument. In order to speed up the calculation process, only the first row of each block is calculated by means of summing the range ambiguity values within each range gate. The following rows are calculated by means of updating the preceding theory row via additions and subtractions of samples at edges of range gates. This procedure generates minor round-off errors to the theory matrix rows, but the error is negligible because 64-bit floats are used for storing the samples that are typically recorded with a 12-bit AD converter.
+
+
+\section{Lag profile inversion solvers}
+
+Altogether five different inverse problem solvers are supported.
+\begin{itemize}
+\item{\bf{rlips}} R Linear Inverse Problem Solver\footnote{\href{http://www.sgo.fi/~m/pages/rlips.html}{http://www.sgo.fi/~m/pages/rlips.html}}. This is the only solver that makes use of GPUs.
+\item{\bf{fishs}} A simple inverse problem solver based on direct calculation of Fisher information matrix. 
+\item{\bf{deco}} Matched filter decoding of lag profiles with variance estimation.  Will lead to range ambiguities unless alternating codes or long cycles of random codes are used.
+\item{\bf{ffts}} Lag profile inversion by means of FFT. Suitable for bistatic measurements, in which the limited beam intersection allows one to neglect problematic edge effects. Background noise suppression cannot be combined with ffts.
+\item{\bf{dummy}} Dummy solver that calculates simple averages. Intended to be used together with voltage level decoding. Background noise suppression cannot be combined with dummy solver.
+\end{itemize}
+
+Only rlips, fishs, and deco require explicit theory matrix rows. When other solver are used the theory rows are not produced but the solvers operate directly on the correlated data vectors.
+
+
+\section{Input and output control}
+
+
+In order to make LPI suitable for wide range of data formats, the package allows the user to define a set of functions used for data input and output.  These functions can be collected in separate packages that can be maintained indepedently from LPI. Names of the I/O functions and packages including them are given as input arguments to the main solver function. It is usually practical to include also a simple wrapper function that generates a call to the main analysis loop of LPI.  A raw data input function is mandatory, whereas a few other routines have defaults, see the LPI manual for details. Currently availabe I/O packages are \verb|LPI.gdf| and \verb|LPI.KAIRA|. See LPI-manual.pdf for detailed descriptions of the I/O functions. 
+
+
+
+
+\chapter{LPI in practice}
+
+This chapter contains example use cases of LPI. Before proceeding to the examples it may be worth having a look at the actual user manual. A pdf version can be opened from R command line after installing the package with
+<<echo=TRUE,eval=FALSE>>=
+library(LPI)
+vignette('LPI-manual')
+@ 
+It can also be found from within the distribution package as explained in Section \ref{help}. Standard R help pages are also available, please have a look at the package help page
+<<echo=TRUE,eval=FALSE>>=
+help(package=LPI)
+@ 
+and the help page of the main analysis function
+<<echo=TRUE,eval=FALSE>>=
+?LPI
+@ 
+
+\section{Examples with simulated data}
+
+Simplistic radar simulator can be easily combined with LPI by implementing the simulation in the data input functions. The following examples will run sequentially which allows us to simply define the functions in user workspace without collecting them in a separate package.
+
+
+\subsection{A coherent point target}
+
+We will begin the examples section with a simple detection of a stationary coherent target 200 km away from a monostatic radar. This is also a simple way to confirm that the package works properly. First the package needs to be loaded
+<<echo=TRUE,eval=TRUE>>=
+library(LPI)
+@ 
+
+We will then define a function for raw data input, the simple simulator will be build within this functions.
+<<echo=TRUE,eval=TRUE>>=
+datafun <- function( LPIparam , ... ){
+  
+  srate <- 1e4
+  
+  # First pre-allocate the output list
+  outlist <- list( TX1=list() , TX2=list() , RX1=list() ,
+                  RX2=list() , success=TRUE)
+  
+  # Data vector lengths, we can select TX1 because all 
+  # sample rates must be equal at this point
+  nd <- round( LPIparam[["timeRes.s"]] * srate )
+                
+  # Let us use 1 ms pulses at random positions with 25 % duty-cycle
+  
+  # Pulse lengths counted as data samples
+  plen <- floor( 1e-3 * srate )
+  
+  # Number of pulses in the whole data vectors
+  np <- round( nd * .25 / plen )
+  
+  # Let us generate random pulse positions for TX1
+  pstarts <- floor(runif( np ) * ( nd - plen - 1 ) ) + 1
+  
+  # Allocate the data and index vectors for TX1
+  outlist[['TX1']][['cdata']] <- complex( nd , real=0 , imaginary=0 )
+  
+  # Then make random codes at each pulse position
+  for( p in pstarts ){
+    outlist[['TX1']][['cdata']][ p : ( p + plen - 1 ) ] <- 
+      runif( plen ) + 1i * runif( plen ) - (.5 + .5i) 
+  }
+  
+  # Transmitter index vector can now be easily produced
+  outlist[['TX1']][['idata']] <- abs( outlist[['TX1']][['cdata']] ) > 0
+  
+  # Add the ndata element
+  outlist[['TX1']][['ndata']] <- as.integer(nd)
+  
+  # TX2 is identical with TX1
+  outlist[['TX2']] <- outlist[['TX1']]
+  
+  # Our coherent target is assumed to be at 200 km range,
+  # convert to sample intervals
+  rtarg <- floor( 200e3 / 2.99792458e8 * 2 * srate )
+  
+  # The receiver samples are simply 
+  # a shifted copy of the transmitter samples
+  outlist[['RX1']][['cdata']] <- 
+    c( rep( 0 , rtarg ) , outlist[['TX1']][['cdata']][1:(nd-rtarg)] )
+  
+  # Let us add some random noise on top of the receiver samples
+  outlist[['RX1']][['cdata']] <- 
+    outlist[['RX1']][['cdata']] + (rnorm(nd) + 1i*rnorm(nd))*.3
+  
+  # Receiver index vector is negation of the transmitter index vector
+  outlist[['RX1']][['idata']] <- !outlist[['TX1']][['idata']]
+  
+  # Add the ndata element
+  outlist[['RX1']][['ndata']] <- as.integer(nd)
+  
+  # RX2 is identical with RX1
+  outlist[['RX2']] <- outlist[['RX1']]
+  
+  return(outlist)
+  
+}
+  
+@ 
+
+We will also define a new function for storing the results, it will simply copy them to the global workspace
+
+<<eecho=TRUE,eval=TRUE>>=
+savefun <- function( LPIparam , intPeriod , ACF )
+  {
+    assign( paste('ACF',as.character(intPeriod),sep=''),ACF,.GlobalEnv)
+  }
+@ 
+
+
+We have now everything needed for the simulation run, let us call LPI. 'startTime' and 'stopTime' are chosen arbitrarily, which is possible because our 'dataInputFunction' is actually a simulator and it will return samples for arbitrary time intervals.  The function will print all parameters that may affect the inversion results. 
+<<echo=TRUE,eval=TRUE>>=
+LPI(
+  startTime = 1356998400,
+  stopTime = 1356998410,
+  lagLimits = seq( 9 ) ,            # all intra-pulse lags
+  timeRes.s = 10 ,                  # 10 s integration time
+  rangeLimits  = seq(1,30)        , # range gates 
+  resultDir = NA ,                  # we will not write results to files
+  dataInputFunction = 'datafun' ,   # our data input function
+  resultSaveFunction = 'savefun',   # our function for saving results
+)
+@ 
+
+Let us now have a look at the results stored in the variable 'ACF1'. The ACF matrix has one extra row for the background ACF because 'savefun' did not strip that off. 
+<<echo=TRUE,eval=FALSE,fig=FALSE>>=
+image(ACF1$lag,ACF1$range,t(Re(ACF1$ACF[1:length(ACF1$range),])),
+      col=rev(gray(seq(1000)/1000)),zlim=c(-.2,1.2))
+@ 
+\begin{figure}
+  \begin{center}
+<<echo=FALSE,eval=TRUE,results=tex>>=
+file <- 'coherent.pdf'
+pdf(file=file, paper="special", width=4, height=4)
+image(ACF1$lag,ACF1$range,t(Re(ACF1$ACF[1:length(ACF1$range),])),
+      col=rev(gray(seq(1000)/1000)),zlim=c(-.2,1.2))
+dummy <- dev.off()
+cat("\\includegraphics[width=.5\\textwidth]{", file, "}\n\n", sep="")
+@ 
+  \caption{LPI detection of a simulated coherent point target. }
+  \label{figcoherent}
+\end{center}
+\end{figure}
+
+
+\subsection{Ground clutter suppression}
+
+The LPI ground clutter suppression option is essentially a notch filter at zero Doppler frequency, this is a simple example of its operation.
+
+We will replace the 'datafun' with a new version that simulates two point targets, one moving and another stationary.  We will keep the original target at 200 km distance, but this time the target will have a small doppler shift. Another cluttering signal with zero Doppler will be added below the original one, and we will show how it can be suppressed from the final ACF.
+
+Let us first re-define the data input function
+
+<<echo=TRUE,eval=TRUE>>=
+datafun <- function( LPIparam , ... ){
+
+  srate <- 1e4
+  
+  # First pre-allocate the output list
+  outlist <- list( TX1=list() , TX2=list() , RX1=list() ,
+                  RX2=list() , success=TRUE)
+  
+  # Data vector lengths, we can select TX1 because all 
+  # sample rates must be equal at this point
+  nd <- round( LPIparam[["timeRes.s"]] * srate )
+  
+  # Let us use 1 ms pulses at random positions with 25 % duty-cycle
+  
+  # Pulse lengths counted as data samples
+  plen <- floor( 1e-3 * srate )
+  
+  # Number of pulses in the whole data vectors
+  np <- round( nd * .25 / plen )
+  
+  # Let us generate random pulse positions for TX1
+  pstarts <- floor(runif( np ) * ( nd - plen - 1 ) ) + 1
+  
+  # Allocate the data and index vectors for TX1
+  outlist[['TX1']][['cdata']] <- complex( nd , real=0 , imaginary=0 )
+  
+  # Then make random codes at each pulse position
+  for( p in pstarts ){
+    outlist[['TX1']][['cdata']][ p : ( p + plen - 1 ) ] <- 
+      runif( plen ) + 1i * runif( plen ) - (.5 + .5i) 
+  }
+  
+  # Transmitter index vector can now be easily produced
+  outlist[['TX1']][['idata']] <- abs( outlist[['TX1']][['cdata']] ) > 0
+  
+  # Add the ndata element
+  outlist[['TX1']][['ndata']] <- as.integer(nd)
+  
+  # TX2 is identical with TX1
+  outlist[['TX2']] <- outlist[['TX1']]
+  
+  # Our coherent target is assumed to be at 200 km range,
+  # convert to sample intervals
+  rtarg <- floor( 200e3 / 2.99792458e8 * 2 * srate )
+  
+  # The cluttering is two range gates below the actual target
+  rclut <- rtarg - 2
+    
+  # The receiver samples of the target will be now 
+  # multiplied with a complex sinusoid
+  outlist[['RX1']][['cdata']] <- 
+    c( rep( 0 , rtarg ) , outlist[['TX1']][['cdata']][1:(nd-rtarg)] ) * 
+      exp(1i*seq(nd)*.01)
+  
+  # The cluttering target is stationary, simply add it
+  outlist[['RX1']][['cdata']] <- outlist[['RX1']][['cdata']] + 
+    c( rep( 0 , rclut ) , outlist[['TX1']][['cdata']][1:(nd-rclut)] ) 
+  
+  # Let us add some random noise on top of the receiver samples
+  outlist[['RX1']][['cdata']] <- 
+    outlist[['RX1']][['cdata']] + (rnorm(nd) + 1i*rnorm(nd))*.5
+  
+  # Receiver index vector is the negation of the transmitter index vector
+  outlist[['RX1']][['idata']] <- !outlist[['TX1']][['idata']]
+  
+  # Add the ndata element
+  outlist[['RX1']][['ndata']] <- as.integer(nd)
+  
+  # RX2 is identical with RX1
+  outlist[['RX2']] <- outlist[['RX1']]
+  
+  return(outlist)
+  
+}
+  
+@ 
+
+
+We have now everything needed for the simulation run, let us call LPI, first without clutter suppression
+<<echo=TRUE,eval=TRUE>>=
+LPI(
+  startTime = 1356998400,
+  stopTime = 1356998410,
+  lagLimits = seq( 9 ) ,            # all intra-pulse lags
+  timeRes.s = 10 ,                  # 10 s integration time
+  rangeLimits  = seq(1,30)        , # range gates 
+  resultDir = NA ,                  # we will not write results to files
+  dataInputFunction = 'datafun' ,   # our data input function
+  resultSaveFunction = 'savefun',   # our function for saving results
+  maxClutterRange=0
+  )
+@ 
+
+
+Let us copy the result to wait for later inspection.
+<<echo=TRUE,eval=TRUE>>=
+ACFclutter <- ACF1
+@ 
+
+
+
+In the second run we will apply clutter suppression all the way to 300 km range.
+<<echo=TRUE,eval=TRUE>>=
+LPI(
+  startTime = 1356998400,
+  stopTime = 1356998410,
+  lagLimits = seq( 9 ) ,            # all intra-pulse lags
+  timeRes.s = 10 ,                  # 10 s integration time
+  rangeLimits  = seq(1,30)        , # range gates 
+  resultDir = NA ,                  # we will not write results to files
+  dataInputFunction = 'datafun' ,   # our data input function
+  resultSaveFunction = 'savefun',   # our function for saving results
+  maxClutterRange=20
+  )
+@ 
+
+
+
+Only one target is now detected, the lower one had zero doppler and was subtracted at voltage level before lag profile inversion.
+Comparison of the results with and without clutter suppression is given in Figure (\ref{figclutrem})
+
+<<echo=TRUE,eval=FALSE,fig=FALSE>>=
+image(ACFclutter$lag,ACFclutter$range,
+      t(Re(ACFclutter$ACF[1:length(ACF1$range),])),
+      col=rev(gray(seq(1000)/1000)),zlim=c(-.2,1.2))
+image(ACF1$lag,ACF1$range,t(Re(ACF1$ACF[1:length(ACF1$range),])),
+      col=rev(gray(seq(1000)/1000)),zlim=c(-.2,1.2))
+@ 
+\begin{figure}
+  \begin{center}
+<<echo=FALSE,eval=TRUE,results=tex>>=
+file <- 'clutrem.pdf'
+pdf(file=file, paper="special", width=8, height=4)
+layout(matrix(seq(2),nrow=1))
+image(ACFclutter$lag,ACFclutter$range,
+      t(Re(ACFclutter$ACF[1:length(ACF1$range),])),
+      col=rev(gray(seq(1000)/1000)),zlim=c(-.2,1.2))
+image(ACF1$lag,ACF1$range,t(Re(ACF1$ACF[1:length(ACF1$range),])),
+      col=rev(gray(seq(1000)/1000)),zlim=c(-.2,1.2))
+dummy <- dev.off()
+cat("\\includegraphics[width=\\textwidth]{", file, "}\n\n", sep="")
+@ 
+  \caption{LPI detection of two simulated coherent point targets. The upper one has a small doppler shift whereas the lower one has zero doppler. When analysed without clutter suppresion (left) both targets are detected. When the clutter suppression is applied (right) the lower one becomes subtracted at voltage level before the actual lag profile inversion. }
+  \label{figclutrem}
+\end{center}
+\end{figure}
+
+
+\section{Examples with real data}
+
+\subsection{Autocovariance function measurement with a monostatic radar}
+
+Let us now continue with one second of real voltage level signal samples from EISCAT UHF beata experiment from March 13 2013  22:02:36 UT. 
+
+We will again define a data  input function that loads the data from file,
+<<echo=TRUE,eval=TRUE>>=
+datafun <- function( LPIparam , intPeriod ){
+  
+ # Load the sample data file
+ load('beata20130313.Rdata')
+ 
+ # Create the output list, we will always simply return
+ # all data in the file
+ odata <- list()
+ beata20130313$itx <- beata20130313$itx>0
+ beata20130313$irx <- beata20130313$irx>0
+ odata$TX1 <- list(cdata=beata20130313$cdata,idata=beata20130313$itx,ndata=beata20130313$ndata)
+ odata$TX2 <- odata$TX1
+ odata$RX1 <- list(cdata=beata20130313$cdata,idata=beata20130313$irx,ndata=beata20130313$ndata)
+ odata$RX2 <- odata$RX1
+ odata$success <- TRUE
+ 
+ return(odata)
+}
+@ 
+
+Then we will again call LPI. Because our 'datafun' does not check sampling times we can select arbitrary values for 'startTime', 'stopTime', and 'timeRes.s'.
+<<echo=TRUE,eval=TRUE>>=
+LPI(
+  startTime = 1356998400,
+  stopTime = 1356998401,
+  lagLimits = seq( 15 ) ,            # all intra-pulse lags
+  timeRes.s = 1 ,                  # 10 s integration time
+  rangeLimits  = c(seq(20,50),seq(55,150,by=5))        , # range gates 
+  resultDir = NA ,                  # we will not write results to files
+  dataInputFunction = 'datafun' ,   # our data input function
+  resultSaveFunction = 'savefun',   # our function for saving results
+  maxClutterRange=20
+  )
+@ 
+
+Let us plot the result again
+<<echo=TRUE,eval=FALSE,fig=FALSE>>=
+image(ACF1$lag,ACF1$range,
+      t(Re(ACF1$ACF[1:length(ACF1$range),])),
+      col=rev(gray(seq(1000)/1000)),zlim=c(-.2,1.2)*1e-5)
+@ 
+\begin{figure}
+  \begin{center}
+<<echo=FALSE,eval=TRUE,results=tex>>=
+file <- 'beata.pdf'
+pdf(file=file, paper="special", width=4, height=4)
+image(ACF1$lag,ACF1$range,
+      t(Re(ACF1$ACF[1:length(ACF1$range),])),
+      col=rev(gray(seq(1000)/1000)),zlim=c(-1,3)*1e-5)
+dummy <- dev.off()
+cat("\\includegraphics[width=.5\\textwidth]{", file, "}\n\n", sep="")
+@ 
+  \caption{LPI analysis of one second of data from an EISCAT UHF beata experiment March 13 2013 22:02:36 UT. The results is very noisy because a very short period of data was used, but a clear E region is visible around range gate 40 and F region around range gate 100.}
+  \label{figbeata}
+\end{center}
+\end{figure}
+
+
+\subsection{Bistatic measurements and crosscovariannce functions}
+
+Bistatic and crosscorrelation function measurements are not different from the monostatic analysis from LPI point-of-view. The differences are dealt with in the user-defined 'dataInputFunction', which must be dsigned to return appropriate TX / RX data combinations. 
+
+
+\chapter{Documented source code}
+
+
+\section{Process control}
+
+\subsection{LPI}
+The main analysis loop. All user control of LPI takes place via input arguments to LPI, it is the only function that needs to be manually called. 
+\lstinputlisting[style=myR]{../R/LPI.R}
+
+\newpage
+
+\subsection{LPIexpand.input}
+\lstinputlisting[style=myR]{../R/LPIexpand.input.R}
+
+\newpage
+
+\subsection{LPIinitCluster.R}
+\lstinputlisting[style=myR]{../R/LPIinitCluster.R}
+
+\newpage
+
+\subsection{LPIinitRemoteNode.R}
+\lstinputlisting[style=myR]{../R/LPIinitRemoteNode.R}
+
+\newpage
+
+\subsection{LPIinitComputingSlaves.R}
+\lstinputlisting[style=myR]{../R/LPIinitComputingSlaves.R}
+
+\newpage
+
+\subsection{currentTimes.R}
+\lstinputlisting[style=myR]{../R/currentTimes.R}
+
+\newpage
+
+\subsection{nextIntegrationPeriods.R}
+\lstinputlisting[style=myR]{../R/nextIntegrationPeriods.R}
+
+\newpage
+
+\subsection{LPIsolve.acf.R}
+\lstinputlisting[style=myR]{../R/LPIsolve.acf.R}
+
+\newpage
+
+\subsection{noUpdate.R}
+\lstinputlisting[style=myR]{../R/noUpdate.R}
+
+\newpage
+
+\subsection{LPIrun.remote.R}
+\lstinputlisting[style=myR]{../R/LPIrun.remote.R}
+
+\newpage
+
+\subsection{LPIrun.R}
+\lstinputlisting[style=myR]{../R/LPIrun.R}
+
+\newpage
+
+\subsection{initLPIenv.R}
+\lstinputlisting[style=myR]{../R/initLPIenv.R}
+
+\newpage
+
+\subsection{LPIsolve.R}
+\lstinputlisting[style=myR]{../R/LPIsolve.R}
+
+\newpage
+
+
+\section{Signal pre- and post-processing}
+
+\subsection{prepareLPIdata.R}
+\lstinputlisting[style=myR]{../R/prepareLPIdata.R}
+
+\newpage
+
+\subsection{clutterSuppress.R}
+\lstinputlisting[style=myR]{../R/clutterSuppress.R}
+
+\newpage
+
+\subsection{decoFilter.R}
+\lstinputlisting[style=myR]{../R/decoFilter.R}
+
+\newpage
+
+\subsection{LPIaveragePower.R}
+\lstinputlisting[style=myR]{../R/LPIaveragePower.R}
+
+\newpage
+
+\subsection{LPIsaveACF.R}
+\lstinputlisting[style=myR]{../R/LPIsaveACF.R}
+
+\newpage
+
+\subsection{stripACF.R}
+\lstinputlisting[style=myR]{../R/stripACF.R}
+
+
+\newpage
+
+
+\section{Correlation and inverse problem formulation}
+
+\subsection{laggedProducts.R}
+\lstinputlisting[style=myR]{../R/laggedProducts.R}
+
+\newpage
+
+\subsection{lagprodVar.R}
+\lstinputlisting[style=myR]{../R/lagprodVar.R}
+
+\newpage
+
+\subsection{rangeAmbiguity.R}
+\lstinputlisting[style=myR]{../R/rangeAmbiguity.R}
+
+\newpage
+
+\subsection{averageProfiles.R}
+\lstinputlisting[style=myR]{../R/averageProfiles.R}
+
+\newpage
+
+\subsection{theoryRows.R}
+\lstinputlisting[style=myR]{../R/theoryRows.R}
+
+\newpage
+
+
+\section{Inverse problem solvers}
+
+\subsection{fishs.init.R}
+\lstinputlisting[style=myR]{../R/fishs.init.R}
+
+\newpage
+
+\subsection{fishs.add.R}
+\lstinputlisting[style=myR]{../R/fishs.add.R}
+
+\newpage
+
+\subsection{fishs.solve.R}
+\lstinputlisting[style=myR]{../R/fishs.solve.R}
+
+\newpage
+
+\subsection{deco.init.R}
+\lstinputlisting[style=myR]{../R/deco.init.R}
+
+\newpage
+
+\subsection{deco.add.R}
+\lstinputlisting[style=myR]{../R/deco.add.R}
+
+\newpage
+
+\subsection{deco.solve.R}
+\lstinputlisting[style=myR]{../R/deco.solve.R}
+
+\newpage
+
+\subsection{dummy.init.R}
+\lstinputlisting[style=myR]{../R/dummy.init.R}
+
+\newpage
+
+\subsection{dummy.add.R}
+\lstinputlisting[style=myR]{../R/dummy.add.R}
+
+\newpage
+
+\subsection{dummy.solve.R}
+\lstinputlisting[style=myR]{../R/dummy.solve.R}
+
+\newpage
+
+\subsection{ffts.init.R}
+\lstinputlisting[style=myR]{../R/ffts.init.R}
+
+\newpage
+
+\subsection{ffts.add.R}
+\lstinputlisting[style=myR]{../R/ffts.add.R}
+
+\newpage
+
+\subsection{ffts.solve.R}
+\lstinputlisting[style=myR]{../R/ffts.solve.R}
+
+\newpage
+
+\subsection{rlips.solve2.R}
+\lstinputlisting[style=myR]{../R/rlips.solve2.R}
+
+\newpage
+
+
+
+
+
+\section{C functions and headers}
+
+\subsection{src/LPI.h}
+\lstinputlisting[style=myC]{../src/LPI.h}
+
+\newpage
+
+\subsection{register.c}
+\lstinputlisting[style=myC]{../src/register.c}
+
+\newpage
+
+\subsection{clutter\_meas.c}	
+\lstinputlisting[style=myC]{../src/clutter_meas.c}
+
+\newpage
+
+\subsection{clutter\_subtract.c}	
+\lstinputlisting[style=myC]{../src/clutter_subtract.c}
+
+\newpage
+
+\subsection{dummy\_add.c}	
+\lstinputlisting[style=myC]{../src/dummy_add.c}
+
+\newpage
+
+\subsection{deco\_add.c}
+\lstinputlisting[style=myC]{../src/deco_add.c}
+
+\newpage
+
+\subsection{fishs\_add.c}
+\lstinputlisting[style=myC]{../src/fishs_add.c}
+
+\newpage
+
+\subsection{fishs\_add\_clutter.c}
+\lstinputlisting[style=myC]{../src/fishs_add_clutter.c}
+
+\newpage
+
+\subsection{index\_adjust.c}
+\lstinputlisting[style=myC]{../src/index_adjust.c}
+
+\newpage
+
+\subsection{average\_power.c}
+\lstinputlisting[style=myC]{../src/average_power.c}
+
+\newpage
+
+\subsection{lagged\_products.c}
+\lstinputlisting[style=myC]{../src/lagged_products.c}
+
+\newpage
+
+\subsection{average\_profile.c}
+\lstinputlisting[style=myC]{../src/average_profile.c}
+
+\newpage
+
+\subsection{mix\_frequency.c}
+\lstinputlisting[style=myC]{../src/mix_frequency.c}
+
+\newpage
+
+\subsection{resample.c}
+\lstinputlisting[style=myC]{../src/resample.c}
+
+\newpage
+
+\subsection{prepare\_data.c}
+\lstinputlisting[style=myC]{../src/prepare_data.c}
+
+\newpage
+
+\subsection{theory\_rows.c}
+\lstinputlisting[style=myC]{../src/theory_rows.c}
+
+\newpage
+
+\subsection{range\_ambiguity.c}
+\lstinputlisting[style=myC]{../src/range_ambiguity.c}
+
+
+
+
+
+
+%\bibliography{viitteet}
+
+\end{document}

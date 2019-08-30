@@ -1,0 +1,7 @@
+
+
+export(LPI,
+       stripACF,
+       LPIexpand.input
+       )
+useDynLib(LPI)

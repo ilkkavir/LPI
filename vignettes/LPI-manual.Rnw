@@ -1,0 +1,11 @@
+%\VignetteIndexEntry{User manual}
+\documentclass[a4paper]{article}
+\usepackage{hyperref}
+\usepackage{pdfpages}
+\begin{document}
+<<echo=FALSE>>=
+  system(paste('R CMD Rd2pdf -o tmppdf.pdf --no-preview ',system.file(package='LPI')))
+@ 
+\includepdf[fitpaper=true,pages=-]{tmppdf}
+\end{document}
+
