@@ -37,6 +37,8 @@ LPI <- function(dataInputFunction,
                 normTX = FALSE,
                 nCode = NA,
                 ambInterp = FALSE,
+                minNpower = 100,
+                noiseSpikeThreshold = 5,
                 resultDir = paste(format(Sys.time(),"%Y-%m-%d_%H:%M"),'LP',sep='_'),
                 dataEndTimeFunction="currentTimes",
                 resultSaveFunction = "LPIsaveACF",
@@ -71,6 +73,7 @@ LPI <- function(dataInputFunction,
     LPIparam[["indexShifts"]] <- LPIexpand.input( LPIparam[["indexShifts"]] )
     for( dType in c("TX1","TX2","RX1","RX2")) storage.mode(LPIparam[["indexShifts"]][[dType]]) <- "integer"
     storage.mode( LPIparam[["nCode"]] ) <- "integer"
+    storage.mode( LPIparam[["minNpower"]] ) <- "integer"
 
 
     # Print input arguments

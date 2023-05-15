@@ -227,19 +227,19 @@ prepareLPIdata <- function( LPIparam , LPIdatalist.raw )
     for(niter in seq(3)){
 
       # Average power in signal vector RX1
-      LPIdatalist.final[["RX1"]][["power"]] <- LPIaveragePower( LPIdatalist.final[["RX1"]][["cdata"]] , LPIdatalist.final[["TX1"]][["idata"]] , LPIdatalist.final[["RX1"]][["idata"]] , LPIdatalist.final[["nData"]] , maxr )
+      LPIdatalist.final[["RX1"]][["power"]] <- LPIaveragePower( LPIdatalist.final[["RX1"]][["cdata"]] , LPIdatalist.final[["TX1"]][["idata"]] , LPIdatalist.final[["RX1"]][["idata"]] , LPIdatalist.final[["nData"]] , maxr , LPIparam[["minNpower"]])
 
       # Average power in signal vector RX2
-      LPIdatalist.final[["RX2"]][["power"]] <- LPIaveragePower( LPIdatalist.final[["RX2"]][["cdata"]] , LPIdatalist.final[["TX2"]][["idata"]] , LPIdatalist.final[["RX2"]][["idata"]] , LPIdatalist.final[["nData"]] , maxr )
+      LPIdatalist.final[["RX2"]][["power"]] <- LPIaveragePower( LPIdatalist.final[["RX2"]][["cdata"]] , LPIdatalist.final[["TX2"]][["idata"]] , LPIdatalist.final[["RX2"]][["idata"]] , LPIdatalist.final[["nData"]] , maxr , LPIparam[["minNpower"]])
 
       # Flag data points whose power is more than four times the average at a given height,
       # but only if there were reasonably many samples in the averages
       if(LPIdatalist.final[["RX1"]][["power"]][1] < .05 ){
-          itx1 <- which( abs(LPIdatalist.final[["RX1"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX1"]][["power"]])*4) )
+          itx1 <- which( abs(LPIdatalist.final[["RX1"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX1"]][["power"]])*LPIparam[["noiseSpikeThreshold"]]) )
           LPIdatalist.final[["RX1"]][["idata"]][itx1] <- FALSE
       }
       if(LPIdatalist.final[["RX2"]][["power"]][1] < .05 ){
-          itx2 <- which( abs(LPIdatalist.final[["RX2"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX2"]][["power"]])*4) )
+          itx2 <- which( abs(LPIdatalist.final[["RX2"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX2"]][["power"]])*LPIparam[["noiseSpikeThreshold"]]) )
           LPIdatalist.final[["RX2"]][["idata"]][itx1] <- FALSE
       }
     }

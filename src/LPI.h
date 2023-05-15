@@ -46,7 +46,7 @@ SEXP dummy_add( SEXP msum , SEXP vsum , SEXP rmin , SEXP rmax , SEXP mdata , SEX
 SEXP prepare_data( SEXP cdata , SEXP idata , SEXP ndata , SEXP frequency, SEXP shifts , SEXP nup , SEXP nfilter , SEXP nfirst , SEXP nfirstfrac , SEXP ipartial );
 
 // Average signal power in points withe identical IPPs and pulse lengths
-SEXP average_power( SEXP cdata , SEXP idatatx , SEXP idatarx , SEXP ndata , SEXP maxrange);
+SEXP average_power( SEXP cdata , SEXP idatatx , SEXP idatarx , SEXP ndata , SEXP maxrange , SEXP nminave);
 
 // Average lag profile
 SEXP average_profile( SEXP cdata , SEXP idata , SEXP ndata , SEXP N_CODE);

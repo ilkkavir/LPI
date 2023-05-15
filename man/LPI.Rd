@@ -182,6 +182,22 @@ paramUpdateFunction="noUpdate" , ... )
     Default: FALSE
   }
   
+  \item{'minNpower'}{Minimum number of samples to average in power
+    profile calculation. The average power profile is used for error
+    estimation. In data points with the number of averaged samples less
+    than minNpower, the average over all data points is used. 
+    
+    Default: 100
+  }
+  
+  \item{'noiseSpikeThreshold'}{Threshold for noise spike
+    detection. Data points with squared amplitude larger than
+    noiseSpikeThreshold times the corresponding average power are
+    rejected. 
+    
+    Default: 10
+  }
+	      
   
   \item{indexShifts}{Additional adjustements to TX and RX indices, see
     details. 

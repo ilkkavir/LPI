@@ -34,6 +34,7 @@
    idatarx  Receiver sample index vector
    ndata    Number of points in data vectors
    maxrange Maximum range for power profile estimation 
+   nminave  Minimum number of samples to be averaged
 
   Returns:
    pdata    Average power vector. The first element contains the 
@@ -41,13 +42,14 @@
 
  */
 
-SEXP average_power( SEXP cdata , SEXP idatatx , SEXP idatarx , SEXP ndata , SEXP maxrange)
+SEXP average_power( SEXP cdata , SEXP idatatx , SEXP idatarx , SEXP ndata , SEXP maxrange , SEXP nminave )
 {
   Rcomplex * cd = COMPLEX( cdata );
   int * idtx = LOGICAL( idatatx );
   int * idrx = LOGICAL( idatarx );
   int nd = *INTEGER( ndata );
   int maxr = *INTEGER( maxrange );
+  int nmin = *INTEGER( nminave );
 
   SEXP pdata;
   double *pd;
@@ -273,7 +275,7 @@ SEXP average_power( SEXP cdata , SEXP idatatx , SEXP idatarx , SEXP ndata , SEXP
 	  // the number of summed samples
 	  for( i = 0 ; i < nd ; ++i )
 	    {
-	      if( nsamp[ i ] > 100 ){
+	      if( nsamp[ i ] >= nmin ){
 		ptmp[ i ] /= (double) nsamp[ i ];
 	      }else{
 		ptmp[ i ] = -1.;

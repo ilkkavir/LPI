@@ -17,7 +17,7 @@ static const R_CallMethodDef callMethods[20] = {
   { "theory_rows_alloc"     , (DL_FUNC) & theory_rows_alloc     , 13} ,
   { "theory_rows"           , (DL_FUNC) & theory_rows           , 17} ,
   { "prepare_data"          , (DL_FUNC) & prepare_data          , 10} ,
-  { "average_power"         , (DL_FUNC) & average_power         , 5 } ,
+  { "average_power"         , (DL_FUNC) & average_power         , 6 } ,
   { "deco_add"              , (DL_FUNC) & deco_add              , 7 } ,
   { "average_profile"       , (DL_FUNC) & average_profile       , 4 } ,
   { "dummy_add"             , (DL_FUNC) & dummy_add             , 10} ,
