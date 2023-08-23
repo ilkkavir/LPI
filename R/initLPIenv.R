@@ -24,7 +24,7 @@ initLPIenv <- function( LPIenv.name )
     # Get the LPI environment (transferred as a list,
     # convert into an environment first)
     LPIenv <- as.environment( eval( LPIenv.name ) )
-    
+
     # Allocate vector for the range ambiguity function
     assign( 'camb' , vector(mode='complex',length=(LPIenv[["nData"]]*LPIenv[["nDecimTX"]]))     , LPIenv )
     

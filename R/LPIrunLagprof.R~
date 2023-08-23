@@ -1,0 +1,29 @@
+## file:LPIsolve.R
+## (c) 2023- University of Oulu, Finland
+## Written by Ilkka Virtanen <ilkka.i.virtanen@oulu.fi>
+## Licensed under FreeBSD license.
+##
+
+##
+## 
+## Solve the MAP estimate of a lag profile,
+## starting from raw voltage samples. This function
+## first selects the correct LPIenv. 
+## 
+## Arguments:
+##   LPIenvs    A list lag profile inversion environments
+##   lagind     An index, from which the lag number and integration period are decoded
+## 
+## Returns:
+##  lagprof     A named list  containing the MAP estimate
+##              of the lag profile together with
+##              its (co)variance.
+## 
+
+LPIsolve <- function( lagind , LPIenvs )
+  {
+
+      
+      
+
+  } 

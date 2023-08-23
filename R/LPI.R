@@ -23,9 +23,6 @@ LPI <- function(dataInputFunction,
                 clutterFraction = 1,
                 timeRes.s = 10,
                 backgroundEstimate=TRUE,
-                clusterNodes = NA,
-                nodeMultip=1,
-                useXDR=FALSE,
                 maxWait.s = -1,
                 freqOffset = LPIexpand.input( 0 ),
                 indexShifts = LPIexpand.input( list(c(0,0)) ),
@@ -114,7 +111,7 @@ LPI <- function(dataInputFunction,
     cat(sprintf("%20s %s\n","resultDir:",resultDir))
     cat(sprintf("%20s %s\n","resultSaveFunction:",resultSaveFunction))
     cat(sprintf("%20s %s\n","paramUpdateFunction:",paramUpdateFunction))
-    cat(sprintf("%20s %s\n","useXDR:",useXDR))
+#    cat(sprintf("%20s %s\n","useXDR:",useXDR))
     
     # Total number of integration periods requested
     LPIparam[["lastIntPeriod"]] <- round( ( stopTime - startTime ) / LPIparam[["timeRes.s"]] )
@@ -125,15 +122,22 @@ LPI <- function(dataInputFunction,
         dir.create( resultDir , recursive=TRUE , showWarnings=FALSE )
       }
     }
-    
-    # Initialise the computer cluster for LPI.
-    # Save the cluster definitions to the global workspace
-    ctrlcl <<- LPIinitCluster( LPIparam[["clusterNodes"]] , useXDR=useXDR )
-    ncl <- length( ctrlcl )
 
-    # A flag telling whether the analysis will be run in some
-    # kind of cluster configuration or in a single process
-    LPIparam[["iscluster"]] <- !all(is.na(ctrlcl))
+
+
+      # Get the MPI cluster, which was initialized in startup
+      cl  <- getMPIcluster()
+#      cl  <- makeCluster(4)
+      
+      # number of slave processes (one core is automatically saved for the master process)
+      Ncl <- length(cl)
+
+      # find a reasonable number of parallel integration periods (Niper <= Ncl & Niper*Nlags >= Ncl)
+      Nlags <- length(LPIparam[["lagLimits"]]) - 1
+      Niper <- min( ceiling( Ncl / Nlags * 2 ) , Ncl )
+
+
+
 
     # Initialize a list for unsolved integration periods
     intPer.missing <- seq( LPIparam[["lastIntPeriod"]] )
@@ -151,7 +155,7 @@ LPI <- function(dataInputFunction,
       # Select integration period numbers for the next analysis run
       # Latest periods will be analysed first in order to simplify real-time analysis
       waitSum <- 0
-      while( is.null( intPer.current <- nextIntegrationPeriods( LPIparam , nodeMultip*ncl , intPer.missing ))){
+      while( is.null( intPer.current <- nextIntegrationPeriods( LPIparam , Niper , intPer.missing ))){
 
         # Break the loop after waiting
         # long enough for new data
@@ -176,16 +180,27 @@ LPI <- function(dataInputFunction,
       
       if( endOfData ) break
 
-      # Run analysis on each parallel node, or locally if
-      # LPIparam[["iscluster"]]==FALSE
-      if( LPIparam[["iscluster"]] ){
-        clusterApplyLB( ctrlcl , intPer.current , fun=LPI:::LPIsolve.acf , LPIparam )
-      }else{
-          for( iper in intPer.current ){
-              LPI:::LPIsolve.acf( iper , LPIparam )
-          }
-      }
 
+
+        # read the data lists
+        LPIenvs <<- clusterApply( cl , intPer.current , fun=readInputData , LPIparam )
+
+        # send all data to all cluster nodes
+        clusterExport( cl , 'LPIenvs' )
+
+        # an index vector from which the workers calculate the correct ingetration period and lag number
+        ii <- seq(Niper*Nlags)
+
+        # call the solvers
+        lagprofs <- clusterApply( cl , ii , fun=LPIrunLagprof , substitute(LPIenvs) )
+        
+        # merge the lag profiles into ACF matrices and store the data
+        LPIsaveLagprofs( LPIparam , lagprofs , intPer.current , ii , LPIenvs[[1]][['nGates']] , LPIenvs[[1]][['nLags']])
+
+
+
+        
+        
       # Print something to show that the analysis is running
       for( k in seq(length(intPer.current))) cat('.')
 
@@ -198,7 +213,7 @@ LPI <- function(dataInputFunction,
     } # repeat
 
     # Shut down the cluster at end of analysis
-    if(!all(is.na(LPIparam[["clusterNodes"]]))) stopCluster( ctrlcl )
+    if(!all(is.na(LPIparam[["clusterNodes"]]))) stopCluster( cl )
 
     # This function does not return anything,
     # results are written to files.
