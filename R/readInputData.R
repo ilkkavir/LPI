@@ -1,4 +1,4 @@
-## file:LPIsolve.acf.R
+## file:readInputData.R
 ## (c) 2023- University of Oulu, Finland
 ## Written by Ilkka Virtanen <ilkka.i.virtanen@oulu.fi>
 ## Licensed under FreeBSD license.

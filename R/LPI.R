@@ -136,7 +136,25 @@ LPI <- function(dataInputFunction,
       Nlags <- length(LPIparam[["lagLimits"]]) - 1
       Niper <- min( ceiling( Ncl / Nlags * 2 ) , Ncl )
 
+      # divide the cluster into sub-clusters, one for each integration period
+      # Nsubcl tells how many cores we have in each
+      if(Niper==1){
+	Nsubcl <- Ncl
+	isubcl <- matrix(c(1,Ncl),byrow=T,ncol=2)
+      }else{
+	Nsubcl <- rep( floor(Ncl/Niper) , Niper )
+      	itmp <- 1
+      	while(sum(Nsubcl)<Ncl){
+		Nsubcl[itmp] <- Nsubcl[itmp] + 1
+	 	itmp <- itmp + 1
+		if (itmp>Niper){
+	   	   itmp <- 1
+		}
+		}
+	      isubcl <- cbind( c(1,cumsum(Nsubcl)[1:(Niper-1)]+1) , cumsum(Nsubcl) )
+      }
 
+print(isubcl)
 
 
     # Initialize a list for unsolved integration periods
@@ -183,16 +201,19 @@ LPI <- function(dataInputFunction,
 
 
         # read the data lists
-        LPIenvs <<- clusterApply( cl , intPer.current , fun=readInputData , LPIparam )
+	print('readInputData')
+print(system.time(        LPIenvs <- clusterApply( cl , intPer.current , fun=readInputData , LPIparam )))
 
         # send all data to all cluster nodes
-        clusterExport( cl , 'LPIenvs' )
+	print('Export data')
+print(system.time(        clusterExport( cl , 'LPIenvs' , environment() )))
 
         # an index vector from which the workers calculate the correct ingetration period and lag number
         ii <- seq(Niper*Nlags)
 
         # call the solvers
-        lagprofs <- clusterApply( cl , ii , fun=LPIrunLagprof , substitute(LPIenvs) , Nlags )
+	print('LPIrunLagprof')
+print(system.time(        lagprofs <- clusterApply( cl , ii , fun=LPIrunLagprof , substitute(LPIenvs) , Nlags )))
 
         # merge the lag profiles into ACF matrices and store the data
 	Ngates <- NULL
@@ -202,7 +223,8 @@ LPI <- function(dataInputFunction,
 	    }
 	}
 	if (!is.null(Ngates)){
-	        LPIsaveLagprofs( LPIparam , lagprofs , intPer.current , ii , Ngates , Nlags )
+	print('LPIsaveLagprofs')
+print(system.time(	        LPIsaveLagprofs( LPIparam , lagprofs , intPer.current , ii , Ngates , Nlags )))
 	}
 
 
