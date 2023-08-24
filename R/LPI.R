@@ -192,10 +192,18 @@ LPI <- function(dataInputFunction,
         ii <- seq(Niper*Nlags)
 
         # call the solvers
-        lagprofs <- clusterApply( cl , ii , fun=LPIrunLagprof , substitute(LPIenvs) )
-        
+        lagprofs <- clusterApply( cl , ii , fun=LPIrunLagprof , substitute(LPIenvs) , Nlags )
+
         # merge the lag profiles into ACF matrices and store the data
-        LPIsaveLagprofs( LPIparam , lagprofs , intPer.current , ii , LPIenvs[[1]][['nGates']] , LPIenvs[[1]][['nLags']])
+	Ngates <- NULL
+	for (k in seq(length(LPIenvs))){
+	    if (!is.null(LPIenvs[[k]])){
+	       Ngates <- LPIenvs[[k]][['nGates']]
+	    }
+	}
+	if (!is.null(Ngates)){
+	        LPIsaveLagprofs( LPIparam , lagprofs , intPer.current , ii , Ngates , Nlags )
+	}
 
 
 

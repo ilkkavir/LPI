@@ -20,17 +20,19 @@
 ##              its (co)variance.
 ## 
 
-LPIrunLagprof <- function( lagind , LPIenvNames )
+LPIrunLagprof <- function( lagind , LPIenvNames , nlags )
   {
 
       # read the data lists from the workspace
       LPIenvs <- eval(LPIenvNames)
 
       # integration period within the data chunk
-      iper <- ceiling( lagind / LPIenvs[[1]][["nLags"]] )
+#      iper <- ceiling( lagind / LPIenvs[[1]][["nLags"]] )
+      iper <- ceiling( lagind / nlags )
 
       # lag number
-      lag <- (lagind-1)%%LPIenvs[[1]][["nLags"]] + 1
+#      lag <- (lagind-1)%%LPIenvs[[1]][["nLags"]] + 1
+      lag <- (lagind-1)%%nlags + 1
 
       # assign the correct part of the data to the workspace (because the solver reads it from there...)
       if (!is.null( LPIenv <<- LPIenvs[[iper]] )){
