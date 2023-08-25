@@ -42,8 +42,8 @@ LPI <- function(dataInputFunction,
                 paramUpdateFunction="noUpdate",
                 ...
                 )
-  {
-
+{
+    
     # Collect all input in a list that is handy to pass forwards
     par1 <- formals()
     par1['...'] <- NULL
@@ -125,37 +125,21 @@ LPI <- function(dataInputFunction,
 
 
 
-      # Get the MPI cluster, which was initialized in startup
-      cl  <- getMPIcluster()
-#      cl  <- makeCluster(4)
       
-      # number of slave processes (one core is automatically saved for the master process)
-      Ncl <- length(cl)
 
-      # find a reasonable number of parallel integration periods (Niper <= Ncl & Niper*Nlags >= Ncl)
-      Nlags <- length(LPIparam[["lagLimits"]]) - 1
-      Niper <- min( ceiling( Ncl / Nlags * 2 ) , Ncl )
+    # Get the MPI cluster, which was initialized in startup
+    cl  <- snow::getMPIcluster()
+#   cl  <- makeCluster(4)
+      
+    # number of slave processes (one core is automatically saved for the master process)
+    Ncl <- length(cl)
+    
+    # find a reasonable number of parallel integration periods (Niper <= Ncl & Niper*Nlags >= Ncl)
+    Nlags <- length(LPIparam[["lagLimits"]]) - 1
+#    Niper <- min( ceiling( Ncl / Nlags * 2 ) , Ncl )
 
-      # divide the cluster into sub-clusters, one for each integration period
-      # Nsubcl tells how many cores we have in each
-      if(Niper==1){
-	Nsubcl <- Ncl
-	isubcl <- matrix(c(1,Ncl),byrow=T,ncol=2)
-      }else{
-	Nsubcl <- rep( floor(Ncl/Niper) , Niper )
-      	itmp <- 1
-      	while(sum(Nsubcl)<Ncl){
-		Nsubcl[itmp] <- Nsubcl[itmp] + 1
-	 	itmp <- itmp + 1
-		if (itmp>Niper){
-	   	   itmp <- 1
-		}
-		}
-	      isubcl <- cbind( c(1,cumsum(Nsubcl)[1:(Niper-1)]+1) , cumsum(Nsubcl) )
-      }
 
-print(isubcl)
-
+      
 
     # Initialize a list for unsolved integration periods
     intPer.missing <- seq( LPIparam[["lastIntPeriod"]] )
@@ -164,86 +148,91 @@ print(isubcl)
     endOfData <- FALSE
     repeat{
 
-      # Update the last available data samples
-      LPIparam[["dataEndTimes"]] <- eval( as.name( LPIparam[["dataEndTimeFunction"]] ))( LPIparam )
- 
-      # Latest integration period for which data is available
-      LPIparam[["maxIntPeriod"]] <- floor( ( min(unlist(LPIparam[["dataEndTimes"]])) - LPIparam[["startTime"]] ) / LPIparam[["timeRes.s"]] )
-
-      # Select integration period numbers for the next analysis run
-      # Latest periods will be analysed first in order to simplify real-time analysis
-      waitSum <- 0
-      while( is.null( intPer.current <- nextIntegrationPeriods( LPIparam , Niper , intPer.missing ))){
-
-        # Break the loop after waiting
-        # long enough for new data
-        if( waitSum > LPIparam[["maxWait.s"]] ){
-          endOfData <- TRUE
-          break
-        }
-        
-        # Wait 10 seconds
-        Sys.sleep(10)
-        
-        # Increment the wait time counter
-        waitSum <- waitSum + 10
-        
         # Update the last available data samples
         LPIparam[["dataEndTimes"]] <- eval( as.name( LPIparam[["dataEndTimeFunction"]] ))( LPIparam )
- 
+        
         # Latest integration period for which data is available
         LPIparam[["maxIntPeriod"]] <- floor( ( min(unlist(LPIparam[["dataEndTimes"]])) - LPIparam[["startTime"]] ) / LPIparam[["timeRes.s"]] )
 
-      }
-      
-      if( endOfData ) break
+        # Select integration period numbers for the next analysis run
+        # Latest periods will be analysed first in order to simplify real-time analysis
+        waitSum <- 0
+        while( is.null( intPer.current <- nextIntegrationPeriods( LPIparam , Ncl , intPer.missing ))){
 
-
-
-        # read the data lists
-	print('readInputData')
-print(system.time(        LPIenvs <- clusterApply( cl , intPer.current , fun=readInputData , LPIparam )))
-
-        # send all data to all cluster nodes
-	print('Export data')
-print(system.time(        clusterExport( cl , 'LPIenvs' , environment() )))
-
-        # an index vector from which the workers calculate the correct ingetration period and lag number
-        ii <- seq(Niper*Nlags)
-
-        # call the solvers
-	print('LPIrunLagprof')
-print(system.time(        lagprofs <- clusterApply( cl , ii , fun=LPIrunLagprof , substitute(LPIenvs) , Nlags )))
-
-        # merge the lag profiles into ACF matrices and store the data
-	Ngates <- NULL
-	for (k in seq(length(LPIenvs))){
-	    if (!is.null(LPIenvs[[k]])){
-	       Ngates <- LPIenvs[[k]][['nGates']]
-	    }
-	}
-	if (!is.null(Ngates)){
-	print('LPIsaveLagprofs')
-print(system.time(	        LPIsaveLagprofs( LPIparam , lagprofs , intPer.current , ii , Ngates , Nlags )))
-	}
-
-
-
+            # Break the loop after waiting
+            # long enough for new data
+            if( waitSum > LPIparam[["maxWait.s"]] ){
+                endOfData <- TRUE
+                break
+            }
+        
+            # Wait 10 seconds
+            Sys.sleep(10)
+        
+            # Increment the wait time counter
+            waitSum <- waitSum + 10
+        
+            # Update the last available data samples
+            LPIparam[["dataEndTimes"]] <- eval( as.name( LPIparam[["dataEndTimeFunction"]] ))( LPIparam )
+ 
+            # Latest integration period for which data is available
+            LPIparam[["maxIntPeriod"]] <- floor( ( min(unlist(LPIparam[["dataEndTimes"]])) - LPIparam[["startTime"]] ) / LPIparam[["timeRes.s"]] )
+            
+        }
+        
+        if( endOfData ) break
         
         
-      # Print something to show that the analysis is running
-      for( k in seq(length(intPer.current))) cat('.')
+        ##
+        ## this did not scale to larger clusters, testing a different configuration
+        ##
+##         # read the data lists
+## 	print('readInputData')
+## print(system.time(        LPIenvs <- clusterApply( cl , intPer.current , fun=readInputData , LPIparam )))
 
-      # Remove the solved periods from the list of missing ones
-      intPer.missing <- setdiff( intPer.missing , intPer.current )
+##         # send all data to all cluster nodes
+## 	print('Export data')
+## print(system.time(        clusterExport( cl , 'LPIenvs' , environment() )))
 
-      # Stop if all integration periods are solved
-      if( length(intPer.missing)==0) break
+##         # an index vector from which the workers calculate the correct ingetration period and lag number
+##         ii <- seq(Niper*Nlags)
+
+##         # call the solvers
+## 	print('LPIrunLagprof')
+## print(system.time(        lagprofs <- clusterApply( cl , ii , fun=LPIrunLagprof , substitute(LPIenvs) , Nlags )))
+
+##         # merge the lag profiles into ACF matrices and store the data
+## 	Ngates <- NULL
+## 	for (k in seq(length(LPIenvs))){
+## 	    if (!is.null(LPIenvs[[k]])){
+## 	       Ngates <- LPIenvs[[k]][['nGates']]
+## 	    }
+## 	}
+## 	if (!is.null(Ngates)){
+## 	print('LPIsaveLagprofs')
+## print(system.time(	        LPIsaveLagprofs( LPIparam , lagprofs , intPer.current , ii , Ngates , Nlags )))
+## 	}
+
+
+        # run the integration periods in parallel in the MPI cluster
+        print(unlist(snow::clusterApply( cl , intPer.current , fun=LPIsolveACFfork , LPIparam )))
+        
+        
+        
+        
+#        # Print something to show that the analysis is running
+#        for( k in seq(length(intPer.current))) cat('.')
+
+        # Remove the solved periods from the list of missing ones
+        intPer.missing <- setdiff( intPer.missing , intPer.current )
+
+        # Stop if all integration periods are solved
+        if( length(intPer.missing)==0) break
     
     } # repeat
 
     # Shut down the cluster at end of analysis
-    if(!all(is.na(LPIparam[["clusterNodes"]]))) stopCluster( cl )
+    if(!all(is.na(LPIparam[["clusterNodes"]]))) snow::stopCluster( cl )
 
     # This function does not return anything,
     # results are written to files.

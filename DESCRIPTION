@@ -6,6 +6,6 @@ Author: Ilkka Virtanen <ilkka.i.virtanen@oulu.fi>
 Maintainer: Ilkka Virtanen <ilkka.i.virtanen@oulu.fi>
 Description: Lag Profile Inversion
 License: FreeBSD
-Depends: R (>= 2.14.0), snow
+Depends: R (>= 2.14.0), snow, parallel, parallelly
 Suggests: rlips
 Copyright: University of Oulu, Finland
