@@ -70,29 +70,32 @@ LPIsolveACFfork <- function( intPeriod , LPIparam )
                 lgates <- ( l[1:nlags] + l[2:(nlags+1)] -1 ) / 2
 
 
-                # fork the cluster, try 20 times if the attemps fail
-                ncl <- parallelly::availableCores()
-                cl <- NULL
-                itest <- 0
-                while(length(cl)!=ncl){
-                    cl <- tryCatch(
-                        parallel::makeCluster(ncl,'FORK'),
-                        error=function(e){
-                            Sys.sleep(.1)
-                            return(NULL)
-                        }
-                    )
-                    itest  <- itest + 1
-                    if(itest > 20){
-                        return(NA)
-                    }
-                }
+                ## # fork the cluster, try 20 times if the attemps fail
+                ## ncl <- parallelly::availableCores()
+                ## cl <- NULL
+                ## itest <- 0
+                ## while(length(cl)!=ncl){
+                ##     cl <- tryCatch(
+                ##         parallel::makeCluster(ncl,'FORK'),
+                ##         error=function(e){
+                ##             Sys.sleep(.1)
+                ##             return(NULL)
+                ##         }
+                ##     )
+                ##     itest  <- itest + 1
+                ##     if(itest > 20){
+                ##         return(NA)
+                ##     }
+                ## }
                 
-                # run the actual analysis in the cluster
-                ACFlist <- parallel::clusterApply( cl , x , fun=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) )
+                ## # run the actual analysis in the cluster
+                ## ACFlist <- parallel::clusterApply( cl , x , fun=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) )
 
-                parallel::stopCluster(cl)
+                ## parallel::stopCluster(cl)
 
+                # run the actual analysis in parallel using all available cores
+                ncl <- parallelly::availableCores()
+                ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , mc.cores=ncl )
 
                 # Collect the lag numbers from ACF list
                 lagnums <- x

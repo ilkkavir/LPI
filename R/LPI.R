@@ -223,6 +223,8 @@ LPI <- function(dataInputFunction,
 #        # Print something to show that the analysis is running
 #        for( k in seq(length(intPer.current))) cat('.')
 
+        # should do the below comparison for the actual returned integration period numbers, from which we can easily exclude possibly failed ones and try them again.. 
+        
         # Remove the solved periods from the list of missing ones
         intPer.missing <- setdiff( intPer.missing , intPer.current )
 
