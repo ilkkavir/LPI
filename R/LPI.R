@@ -40,9 +40,9 @@ LPI <- function(dataInputFunction,
                 dataEndTimeFunction="currentTimes",
                 resultSaveFunction = "LPIsaveACF",
                 paramUpdateFunction="noUpdate",
+                cl,
                 ...
-                )
-{
+                ){
     
     # Collect all input in a list that is handy to pass forwards
     par1 <- formals()
@@ -81,12 +81,12 @@ LPI <- function(dataInputFunction,
     cat('\n')
     cat(sprintf("%20s %s\n","dataInputFunction:",dataInputFunction))
     cat(sprintf("%20s %s\n","dataEndTimeFunction:",dataEndTimeFunction))
-    cat(sprintf("%20s"," clusterNodes:"))
-    if( is.list(clusterNodes )){
-      for(n in names(clusterNodes)){cat(sprintf("%s:",n));cat(clusterNodes[[n]],'  ')};cat('\n')
-    }else{
-      cat( clusterNodes ); cat('\n')
-    }
+    ## cat(sprintf("%20s"," clusterNodes:"))
+    ## if( is.list(clusterNodes )){
+    ##   for(n in names(clusterNodes)){cat(sprintf("%s:",n));cat(clusterNodes[[n]],'  ')};cat('\n')
+    ## }else{
+    ##   cat( clusterNodes ); cat('\n')
+    ## }
     cat(sprintf("%20s","nup:"));for(dType in c("RX1","RX2","TX1","TX2")){cat(' ',dType,':',LPIparam[["nup"]][[dType]],sep='')};cat('\n')
     cat(sprintf("%20s","filterLength:"));for(dType in c("RX1","RX2","TX1","TX2")){cat(' ',dType,':',LPIparam[["filterLength"]][[dType]],sep='')};cat('\n')
     cat(sprintf("%20s %s\n","decodingFilter:",decodingFilter[1]))
@@ -128,7 +128,7 @@ LPI <- function(dataInputFunction,
       
 
     # Get the MPI cluster, which was initialized in startup
-    cl  <- snow::getMPIcluster()
+#    cl  <- snow::getMPIcluster()
 #   cl  <- makeCluster(4)
       
     # number of slave processes (one core is automatically saved for the master process)
@@ -228,13 +228,15 @@ LPI <- function(dataInputFunction,
         # Remove the solved periods from the list of missing ones
         intPer.missing <- setdiff( intPer.missing , intPer.current )
 
+        warnings()
         # Stop if all integration periods are solved
         if( length(intPer.missing)==0) break
     
     } # repeat
 
     # Shut down the cluster at end of analysis
-    if(!all(is.na(LPIparam[["clusterNodes"]]))) snow::stopCluster( cl )
+#    if(!all(is.na(LPIparam[["clusterNodes"]]))) snow::stopCluster( cl )
+#    snow::stopCluster( cl )
 
     # This function does not return anything,
     # results are written to files.
