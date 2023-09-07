@@ -51,12 +51,22 @@ fishs.solve <- function( e , full.covariance = TRUE , ... )
     # they cannot correlate with this one
     diag( Q )[ nainds ] <- 1
 
+
+    # normalize diagonal of Q to 1 for better numerical stability
+    dQsqrt <- sqrt(diag(Q))
+    Qscale <- outer(dQsqrt,dQsqrt)
+    Qnorm  <- Q/Qscale
+
+      
     # Covariance matrix is inverse matrix of
     # the Fisher information matrix
     # Even if there were measurements the matrix might not be invertible
     # return NA matrix in this case
-    covariance          <- tryCatch( solve( Q ) , error=function(e){Q*NA})
+    covariance          <- tryCatch( solve( Qnorm ) , error=function(e){Qnorm*NA})
 
+    # back to unnormaized units  
+    covariance <- covariance/Qscale
+      
     # Multiply the covariance matrix with e$y from right.
     # For some reason the direct matrix multiplication
     # with %*% does not work properly in some machines.
