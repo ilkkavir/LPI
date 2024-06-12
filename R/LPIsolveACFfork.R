@@ -25,17 +25,21 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
         require( pn , character.only=TRUE )
     }
 
+    ## Parameter list update
+    ## the default noUpdate will return NULL if the update is done twice for the same data
+    LPIparam <- eval( as.name( LPIparam[["paramUpdateFunction"]] ))( LPIparam , intPeriod )
+
+
     if( !is.null(LPIparam)){
 
-        ## add here a loop over the integration periods. Below is a copy of the old loop in LPI.R
-        
         ## Initialize a list for unsolved integration periods
         intPer.missing <- seq( intPerFirst , LPIparam[["lastIntPeriod"]] , by=LPIparam[['Ncluster']] )
 
         ## Run analysis loop until end of data
         endOfData <- FALSE
-        repeat{
 
+        repeat{
+            
             ## Update the last available data samples
             LPIparam[["dataEndTimes"]] <- eval( as.name( LPIparam[["dataEndTimeFunction"]] ))( LPIparam )
         
@@ -45,7 +49,8 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
             ##  Select integration period number for the next analysis run
             ## Latest periods will be analysed first in order to simplify real-time analysis
             waitSum <- 0
-            while( is.null( intPeriod <- nextIntegrationPeriods( LPIparam , Ncl , intPer.missing ))){
+
+            while( is.null( intPeriod <- nextIntegrationPeriods( LPIparam , 1 , intPer.missing ))){
 
                 ## Break the loop after waiting
                 ## long enough for new data
@@ -70,13 +75,7 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
         
             if( endOfData ) break
         
-        
 
-        
-            ## Parameter list update
-            LPIparam <- eval( as.name( LPIparam[["paramUpdateFunction"]] ))( LPIparam , intPeriod )
-
-        
             ## Read raw data, name of the data input function
             ## should be stored in a character string
             LPIdatalist.raw   <- eval(as.name(LPIparam[["dataInputFunction"]]))( LPIparam , intPeriod )
@@ -200,7 +199,7 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
 
             ## Stop if all integration periods are solved
             if( length(intPer.missing)==0) break
-    
+
         } # repeat
         
     }
@@ -210,6 +209,5 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
     ## Return the integration period
     ## number to the main process
     ##return(intPeriod)
-    return()
     
   }

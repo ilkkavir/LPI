@@ -135,7 +135,7 @@ LPI <- function(dataInputFunction,
     ## Nlags <- length(LPIparam[["lagLimits"]]) - 1
 
     # let the cluster nodes do the work
-    snow::clusterApply( cl , seq(Ncl) , fun=LPIsolveACFfork , LPIparam )
+    print(unlist(snow::clusterApply( cl , seq(Ncl) , fun=LPIsolveACFfork , LPIparam )))
 
     ## this loop is now in LPIsolveACFfork
     
