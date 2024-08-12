@@ -10,6 +10,7 @@
 ## Arguments:
 ##  e      A deco solver environemnt
 ##  A.data Theory matrix rows as a vector (row-by-row)
+##  I.data Indices of non-zero theory matrix elements
 ##  M.data Measurement vector
 ##  E.data Measurement variance vector
 ##
@@ -18,7 +19,7 @@
 ##
 
 
-deco.add <- function( e , A.data ,  M.data ,  E.data=1 )
+deco.add <- function( e , A.data ,  I.data , M.data ,  E.data=1 )
   {
     # Number of theory rows
     nrow <- as.integer(length(M.data))
@@ -28,11 +29,12 @@ deco.add <- function( e , A.data ,  M.data ,  E.data=1 )
 
     # Set storage modes
     storage.mode(A.data) <- "complex"
+    storage.mode(I.data) <- "logical"
     storage.mode(M.data) <- "complex"
     storage.mode(E.data) <- "double"
     storage.mode(nrow)   <- "integer"
 
     # Call the c routine
-    return( .Call( "deco_add" , e$Qvec , e$y , A.data , M.data , E.data , e$ncol , nrow ))
+    return( .Call( "deco_add" , e$Qvec , e$y , A.data , I.data , M.data , E.data , e$ncol , nrow ))
 
   }

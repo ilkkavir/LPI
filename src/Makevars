@@ -1,0 +1,1 @@
+PKG_CFLAGS=-O2 -march=native -ffast-math -funroll-loops -mprefer-vector-width=512

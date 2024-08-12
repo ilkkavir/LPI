@@ -12,6 +12,7 @@
     Qvec  Diagonal of the Fisher information matrix
     yvec  Modified measurement vector
     arows Theory matrix rows
+    irows Indices of non-zero theory matrix elements    
     meas  Measurements
     var   Measurement variances
     nx    Number of unknowns
@@ -22,7 +23,7 @@
 
 */
 
-SEXP deco_add(  const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP meas  , const SEXP var  , const SEXP nx   , const SEXP nrow  )
+SEXP deco_add(  const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas  , const SEXP var  , const SEXP nx   , const SEXP nrow  )
 {
   Rcomplex *q = COMPLEX(Qvec);
   Rcomplex *y = COMPLEX(yvec);
@@ -34,7 +35,7 @@ SEXP deco_add(  const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEX
 
   Rcomplex * restrict qtmp;
   Rcomplex * restrict acpy = COMPLEX(arows);
-  Rcomplex * restrict atmp;
+  int * restrict icpy = LOGICAL(irows);  
   Rcomplex * restrict ytmp;
   Rcomplex * restrict mcpy = COMPLEX(meas);
   double   * restrict vcpy = REAL(var);
@@ -61,17 +62,14 @@ SEXP deco_add(  const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEX
     // Go through all range gates
     for( i = 0 ; i < n ; ++i ){
 
-      // Second pointer to the theory matrix
-      // (Strictly speaking not needed...)
-      atmp = acpy;
+      if ( *icpy ) {
+	
+	// Add information (only diaonal)
+	qtmp->r += ( acpy->r * acpy->r + acpy->i * acpy->i ) / *vcpy;
+	qtmp->i += ( acpy->r * acpy->i - acpy->i * acpy->r ) / *vcpy;
 
-      // Add information (only diaonal)
-      qtmp->r += ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy;
-      qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy;
-
-      // Increment the second theory matrix counter
-      ++atmp;
-
+      }
+      
       // Increment information matrix counter (only diagonal)
       ++qtmp;
 
@@ -83,7 +81,8 @@ SEXP deco_add(  const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEX
       ++ytmp;
 
       // Increment the theory matrix counter
-      ++acpy; 
+      ++acpy;
+      ++icpy;
 
     }
 

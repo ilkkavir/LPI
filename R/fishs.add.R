@@ -12,6 +12,7 @@
 ## Arguments:
 ##  e      A fishs solver environemnt
 ##  A.data Theory matrix rows as a vector (row-by-row)
+##  I.data Indices of non-zero theory matrix elements
 ##  M.data Measurement vector
 ##  E.data Measurement variance vector
 ##
@@ -19,7 +20,7 @@
 ##  success TRUE if the rows were successfully added.
 ##
 
-fishs.add <- function( e , A.data ,  M.data ,  E.data=1 )
+fishs.add <- function( e , A.data , I.data ,  M.data ,  E.data=1 )
   {
 
     # Number of theory rows to add
@@ -30,11 +31,12 @@ fishs.add <- function( e , A.data ,  M.data ,  E.data=1 )
 
     # Check storage modes before calling the c function
     storage.mode(A.data) <- "complex"
+    storage.mode(I.data) <- "logical"
     storage.mode(M.data) <- "complex"
     storage.mode(E.data) <- "double"
     storage.mode(nrow)   <- "integer"
 
     # Call the c function
-    return( .Call( "fishs_add" , e[["Qvec"]] , e[["y"]] , A.data , M.data , E.data , e[["ncol"]] , nrow ))
+    return( .Call( "fishs_add" , e[["Qvec"]] , e[["y"]] , A.data , I.data , M.data , E.data , e[["ncol"]] , nrow ))
 
   }

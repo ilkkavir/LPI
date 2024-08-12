@@ -136,7 +136,7 @@ SEXP mix_frequency( SEXP cdata , SEXP ndata , SEXP frequency)
   coefr = (double*) R_Calloc( ncycle , double );
   coefi = (double*) R_Calloc( ncycle , double );
   for( k = 0 ; k < ncycle ; ++k ){
-    arg      = 2.0 * pi * *fr * (double)(k);
+    arg      = 2.0 * M_PI * *fr * (double)(k);
     coefr[k] = cos(arg);
     coefi[k] = sin(arg);
   }

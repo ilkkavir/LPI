@@ -11,8 +11,10 @@
 #include <Rinternals.h>
 #include <Rdefines.h>
 #include <R_ext/Rdynload.h>
+#include <R_ext/Complex.h>
+#include <R_ext/Constants.h>
 
-static const double pi=3.1415926535;
+//static const double pi=3.1415926535;
 #define AMB_N_INTERP  5
 
 
@@ -38,8 +40,8 @@ SEXP theory_rows_alloc( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP r
 SEXP theory_rows( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP rvar , SEXP ndata , SEXP ncur , SEXP nend , SEXP rlims , SEXP nranges , SEXP arows , SEXP irows , SEXP mvec , SEXP mvar , SEXP nrows , SEXP background, SEXP remoterx );
 
 // Inverse problem solvers
-SEXP fishs_add( const SEXP Qvec, const SEXP yvec , const SEXP arows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow  );
-SEXP deco_add(  const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
+SEXP fishs_add( const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
+SEXP deco_add(  const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
 SEXP dummy_add( SEXP msum , SEXP vsum , SEXP rmin , SEXP rmax , SEXP mdata , SEXP mambig , SEXP iamb , SEXP iprod , SEXP edata , SEXP ndata );
 
 // All data preparations collected together

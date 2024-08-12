@@ -14,6 +14,7 @@
           information matrix as a vector
     yvec  Modified measurement vector
     arows Theory matrix rows
+    irows Indices of non-zero theory matrix elements
     meas  Measurements
     var   Measurement variances
     nx    Number of unknowns
@@ -24,7 +25,7 @@
 
 */
 
-SEXP fishs_add( const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP meas  , const SEXP var  , const SEXP nx   , const SEXP nrow  )               
+SEXP fishs_add( const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas  , const SEXP var  , const SEXP nx   , const SEXP nrow  )               
 {
   Rcomplex *q = COMPLEX(Qvec);
   Rcomplex *y = COMPLEX(yvec);
@@ -37,6 +38,8 @@ SEXP fishs_add( const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEX
   Rcomplex * restrict qtmp;
   Rcomplex * restrict acpy = COMPLEX(arows);
   Rcomplex * restrict atmp;
+  int * restrict icpy = LOGICAL(irows);  
+  int * restrict itmp;  
   Rcomplex * restrict ytmp;
   Rcomplex * restrict mcpy = COMPLEX(meas);
   double   * restrict vcpy = REAL(var);
@@ -65,31 +68,45 @@ SEXP fishs_add( const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEX
 
       // Second pointer to the theory matrix
       atmp = acpy;
+      itmp = icpy;
 
-      // Go through all columns in the upper triangular part
-      for( j = 0 ; j < ( n - i ) ; ++j ){
+      if ( *icpy ) {
+	// Go through all columns in the upper triangular part
+	for( j = 0 ; j < ( n - i ) ; ++j ){
+	  
+	  // Add information
 
-	// Add information
-	qtmp->r += ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy;
-	qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy;
-
-	// Increment the second theory matrix counter
-	++atmp;
-
-	// Increment the information matrix counter
-	++qtmp;
-
+	  if( *itmp ){
+	    qtmp->r += ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy;
+	    qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy;
+	  }
+	  
+	  // Increment the second theory matrix counter
+	  ++atmp;
+	  ++itmp;
+	  
+	  // Increment the information matrix counter
+	  ++qtmp;
+	  
+	}
+	
+	
+	// Add the corresponding measurement to the y-vector
+	ytmp->r += ( mcpy->r * acpy->r + mcpy->i * acpy->i ) / *vcpy;
+	ytmp->i += ( mcpy->i * acpy->r - mcpy->r * acpy->i ) / *vcpy;
+	
+	// Increment the y-vector counter
+	++ytmp;
+	
+      }else{
+	// Jump to the next diagonal element in q
+	qtmp += n-i;
+	++ytmp;
       }
 
-      // Add the corresponding measurement to the y-vector
-      ytmp->r += ( mcpy->r * acpy->r + mcpy->i * acpy->i ) / *vcpy;
-      ytmp->i += ( mcpy->i * acpy->r - mcpy->r * acpy->i ) / *vcpy;
-
-      // Increment the y-vector counter
-      ++ytmp;
-
       // Increment the theory matrix counter
-      ++acpy; 
+      ++acpy;
+      ++icpy;
 
     }
 

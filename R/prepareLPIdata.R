@@ -157,8 +157,10 @@ prepareLPIdata <- function( LPIparam , LPIdatalist.raw )
 
     # Optional TX amplitude normalisation
     if( LPIparam[["normTX"]] ){
-      itx1 <- which(LPIdatalist.final[["TX1"]][["idata"]][1:LPIdatalist.final[["nData"]]])
-      itx2 <- which(LPIdatalist.final[["TX2"]][["idata"]][1:LPIdatalist.final[["nData"]]])
+##      itx1 <- which(LPIdatalist.final[["TX1"]][["idata"]][1:LPIdatalist.final[["nData"]]])
+##      itx2 <- which(LPIdatalist.final[["TX2"]][["idata"]][1:LPIdatalist.final[["nData"]]])
+      itx1 <- LPIdatalist.final[["TX1"]][["idata"]][1:LPIdatalist.final[["nData"]]]
+      itx2 <- LPIdatalist.final[["TX2"]][["idata"]][1:LPIdatalist.final[["nData"]]]
       txamp1 <- mean(abs(LPIdatalist.final[["TX1"]][["cdata"]][itx1]))
       txamp2 <- mean(abs(LPIdatalist.final[["TX2"]][["cdata"]][itx2]))
       LPIdatalist.final[["TX1"]][["cdata"]][itx1] <- exp(1i*Arg(LPIdatalist.final[["TX1"]][["cdata"]][itx1])) * txamp1
@@ -224,7 +226,7 @@ prepareLPIdata <- function( LPIparam , LPIdatalist.raw )
     maxr <- as.integer(max(LPIparam[["rangeLimits"]]))
 
     # Average signal powers, loop three times in order to make simple noise spike detection as well
-    for(niter in seq(3)){
+    for(niter in seq(1)){ # do not loop to make this faster
 
       # Average power in signal vector RX1
       LPIdatalist.final[["RX1"]][["power"]] <- LPIaveragePower( LPIdatalist.final[["RX1"]][["cdata"]] , LPIdatalist.final[["TX1"]][["idata"]] , LPIdatalist.final[["RX1"]][["idata"]] , LPIdatalist.final[["nData"]] , maxr , LPIparam[["minNpower"]])
@@ -235,11 +237,13 @@ prepareLPIdata <- function( LPIparam , LPIdatalist.raw )
       # Flag data points whose power is more than four times the average at a given height,
       # but only if there were reasonably many samples in the averages
       if(LPIdatalist.final[["RX1"]][["power"]][1] < .05 ){
-          itx1 <- which( abs(LPIdatalist.final[["RX1"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX1"]][["power"]])*LPIparam[["noiseSpikeThreshold"]]) )
+##          itx1 <- which( abs(LPIdatalist.final[["RX1"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX1"]][["power"]])*LPIparam[["noiseSpikeThreshold"]]) )
+          itx1 <- abs(LPIdatalist.final[["RX1"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX1"]][["power"]])*LPIparam[["noiseSpikeThreshold"]])
           LPIdatalist.final[["RX1"]][["idata"]][itx1] <- FALSE
       }
       if(LPIdatalist.final[["RX2"]][["power"]][1] < .05 ){
-          itx2 <- which( abs(LPIdatalist.final[["RX2"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX2"]][["power"]])*LPIparam[["noiseSpikeThreshold"]]) )
+##          itx2 <- which( abs(LPIdatalist.final[["RX2"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX2"]][["power"]])*LPIparam[["noiseSpikeThreshold"]]) )
+          itx2 <- abs(LPIdatalist.final[["RX2"]][["cdata"]][1:LPIdatalist.final[["nData"]]]) > (sqrt(LPIdatalist.final[["RX2"]][["power"]])*LPIparam[["noiseSpikeThreshold"]])
           LPIdatalist.final[["RX2"]][["idata"]][itx1] <- FALSE
       }
     }
@@ -331,6 +335,8 @@ prepareLPIdata <- function( LPIparam , LPIdatalist.raw )
     storage.mode(LPIdatalist.final[["ambInterp"]])       <- "logical"
     storage.mode(LPIdatalist.final[["backgroundEstimate"]]) <- "logical"
 
+
+      
     return( LPIdatalist.final )
 
   }

@@ -39,7 +39,7 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
         endOfData <- FALSE
 
         repeat{
-            
+
             ## Update the last available data samples
             LPIparam[["dataEndTimes"]] <- eval( as.name( LPIparam[["dataEndTimeFunction"]] ))( LPIparam )
         
@@ -74,7 +74,10 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
             }
         
             if( endOfData ) break
-        
+      
+            ## RprofFile <- paste('Rprof_',intPeriod,'.out',sep='')
+            ## Rprof(filename=RprofFile,memory.profiling=TRUE,gc.profiling=TRUE,line.profiling=TRUE)
+            
 
             ## Read raw data, name of the data input function
             ## should be stored in a character string
@@ -90,6 +93,9 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     (sum(LPIdatalist.raw[["TX2"]][["idata"]]) > 0)){
                     
                     ## Frequency mixing, filtering, etc.
+                    ## RprofFile <- paste('Rprof_',intPeriod,'.out',sep='')
+                    ## Rprof(filename=RprofFile,memory.profiling=TRUE,gc.profiling=TRUE,line.profiling=TRUE)
+
                     LPIdatalist.final <<- prepareLPIdata( LPIparam , LPIdatalist.raw )
                     
                     ## add some missing vectors and convert into an environment in the global workspace
@@ -119,7 +125,8 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
 
                     ## run the actual analysis in parallel using all available cores
                     ncl <- parallelly::availableCores()
-                    ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , mc.cores=ncl )
+#                    ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , mc.cores=ncl )
+                    ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , intPeriod=intPeriod, mc.cores=ncl )
                     
                     ## Collect the lag numbers from ACF list
                     lagnums <- x
@@ -191,11 +198,16 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     
                     ## Store the results
                     eval( as.name( LPIparam[["resultSaveFunction"]]) )( LPIparam , intPeriod , ACFreturn )
+
+##                    Rprof(NULL)
+
+            
                 }
             }
         
             ## Remove the solved period from the list of missing ones
             intPer.missing <- setdiff( intPer.missing , intPeriod )
+
 
             ## Stop if all integration periods are solved
             if( length(intPer.missing)==0) break
