@@ -276,7 +276,7 @@ SEXP theory_rows( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP rvar , 
 
   // Range from the latest pulse
   r_cur = r_max;
-  for( k = (n_start-r_min) ; k < n_start ; ++k ){
+  for( k = (n_start-r_max) ; k < n_start ; ++k ){
     if( k >= 0 ){
       if(amb_i[k]){
         r_cur = 0;

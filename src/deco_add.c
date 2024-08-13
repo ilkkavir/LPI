@@ -23,25 +23,32 @@
 
 */
 
-SEXP deco_add(  const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas  , const SEXP var  , const SEXP nx   , const SEXP nrow  )
+SEXP deco_add(  SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas  , const SEXP var  , const SEXP nx   , const SEXP nrow  )
 {
   Rcomplex *q = COMPLEX(Qvec);
+  Rcomplex * restrict qtmp;
+
   Rcomplex *y = COMPLEX(yvec);
+  Rcomplex * restrict ytmp;
+
+  Rcomplex * restrict acpy = COMPLEX(arows);
+
+  int * restrict icpy = LOGICAL(irows);  
+
+  Rcomplex * restrict mcpy = COMPLEX(meas);
+
+  double   * restrict vcpy = REAL(var);
+
   int n  = *INTEGER(nx);
+
   int nr = *INTEGER(nrow);
+
   int i  = 0;
   int j  = 0;
   int l  = 0;
 
-  Rcomplex * restrict qtmp;
-  Rcomplex * restrict acpy = COMPLEX(arows);
-  int * restrict icpy = LOGICAL(irows);  
-  Rcomplex * restrict ytmp;
-  Rcomplex * restrict mcpy = COMPLEX(meas);
-  double   * restrict vcpy = REAL(var);
-
-  SEXP                success;
-  int      * restrict i_success;
+  SEXP success;
+  int * restrict i_success;
 
   // Success output
   PROTECT( success = allocVector( LGLSXP , 1 ) );

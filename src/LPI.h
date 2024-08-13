@@ -40,8 +40,8 @@ SEXP theory_rows_alloc( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP r
 SEXP theory_rows( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP rvar , SEXP ndata , SEXP ncur , SEXP nend , SEXP rlims , SEXP nranges , SEXP arows , SEXP irows , SEXP mvec , SEXP mvar , SEXP nrows , SEXP background, SEXP remoterx );
 
 // Inverse problem solvers
-SEXP fishs_add( const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
-SEXP deco_add(  const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
+SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
+SEXP deco_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
 SEXP dummy_add( SEXP msum , SEXP vsum , SEXP rmin , SEXP rmax , SEXP mdata , SEXP mambig , SEXP iamb , SEXP iprod , SEXP edata , SEXP ndata );
 
 // All data preparations collected together
@@ -61,7 +61,7 @@ SEXP resample_R( SEXP cdata , SEXP idata , SEXP ndata , SEXP nup , SEXP nfilter 
 SEXP range_ambiguity( SEXP cdata1 ,SEXP cdata2 , SEXP idata1 , SEXP idata2 , SEXP cdatap , SEXP idatap , SEXP ndata1 ,  SEXP ndata2 ,  SEXP lag );
 
 // Ground clutter suppression
-SEXP clutter_meas( const SEXP tcdata , const SEXP tidata , const SEXP rcdata , const SEXP ridata , const SEXP ndata , const SEXP rmin ,  const SEXP rmax , const SEXP Qvec , const SEXP yvec );
-SEXP clutter_subtract( const SEXP tcdata , const SEXP tidata , const SEXP rcdata , const SEXP ridata , const SEXP ndata , const SEXP rmin , const SEXP rmax , const SEXP cldata );
-void fishs_add_clutter( const SEXP Qvec , const SEXP yvec , Rcomplex * arow , Rcomplex * meas , const int nx );
+SEXP clutter_meas( const SEXP tcdata , const SEXP tidata , const SEXP rcdata , const SEXP ridata , const SEXP ndata , const SEXP rmin ,  const SEXP rmax , SEXP Qvec , SEXP yvec );
+SEXP clutter_subtract( const SEXP tcdata , const SEXP tidata , SEXP rcdata , const SEXP ridata , const SEXP ndata , const SEXP rmin , const SEXP rmax , const SEXP cldata );
+void fishs_add_clutter( SEXP Qvec , SEXP yvec , Rcomplex * arow , Rcomplex * meas , const int nx );
 		      

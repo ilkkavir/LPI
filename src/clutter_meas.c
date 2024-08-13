@@ -27,7 +27,7 @@
    nrow    Number of measurement rows in the inverse problem
 
 */
-SEXP clutter_meas( const SEXP tcdata , const SEXP tidata , const SEXP rcdata , const SEXP ridata , const SEXP ndata , const SEXP rmin , const SEXP rmax , const SEXP Qvec , const SEXP yvec )
+SEXP clutter_meas( const SEXP tcdata , const SEXP tidata , const SEXP rcdata , const SEXP ridata , const SEXP ndata , const SEXP rmin , const SEXP rmax , SEXP Qvec , SEXP yvec )
 {
   Rcomplex *tcd = COMPLEX( tcdata );
   int *tid = LOGICAL( tidata );

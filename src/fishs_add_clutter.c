@@ -19,7 +19,7 @@
 
 */
 
-void fishs_add_clutter( const SEXP Qvec , const SEXP yvec , Rcomplex * arow , Rcomplex * meas , const int nx )
+void fishs_add_clutter( SEXP Qvec , SEXP yvec , Rcomplex * arow , Rcomplex * meas , const int nx )
 {
   Rcomplex *q = COMPLEX(Qvec);
   Rcomplex *y = COMPLEX(yvec);
@@ -27,9 +27,9 @@ void fishs_add_clutter( const SEXP Qvec , const SEXP yvec , Rcomplex * arow , Rc
   int i  = 0;
   int j  = 0;
 
-  Rcomplex * restrict qtmp;
-  Rcomplex * restrict acpy = arow;
-  Rcomplex * restrict atmp;
+  Rcomplex * qtmp;
+  Rcomplex * acpy = arow;
+  Rcomplex * atmp;
   Rcomplex * restrict ytmp;
   Rcomplex * restrict mcpy = meas;
 

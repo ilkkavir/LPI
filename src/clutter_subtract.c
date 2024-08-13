@@ -25,7 +25,7 @@
 
 */
 
-SEXP clutter_subtract( const SEXP tcdata , const SEXP tidata , const SEXP rcdata , const SEXP ridata , const SEXP ndata , const SEXP rmin , const SEXP rmax , const SEXP cldata )
+SEXP clutter_subtract( const SEXP tcdata , const SEXP tidata , SEXP rcdata , const SEXP ridata , const SEXP ndata , const SEXP rmin , const SEXP rmax , const SEXP cldata )
 {
   Rcomplex *tcd = COMPLEX( tcdata );
   int *tid = LOGICAL( tidata );

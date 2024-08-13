@@ -24,10 +24,12 @@
 LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
 {
     
-    ## if(lag==1){
-    ##     RprofFile <- paste('Rprof_',intPeriod,'.out',sep='')
-    ##     Rprof(filename=RprofFile,memory.profiling=TRUE,gc.profiling=TRUE,line.profiling=TRUE)
-    ## }
+#    if(lag==1){
+#        EnvFile <-  paste('Env_',intPeriod,'.Rdata',sep='')
+#        RprofFile <- paste('Rprof_',intPeriod,'.out',sep='')
+#        FlopsFile <- paste('FLOPS_',intPeriod,'.Rdata',sep='')
+#        Rprof(filename=RprofFile,memory.profiling=TRUE,gc.profiling=TRUE,line.profiling=TRUE)
+#    }
     
     
     ## Get the LPI environment from the global workspace
@@ -122,8 +124,11 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
             
             ## Produce theory matrix rows in
             ## (small) sets and add them to the solver
+            FLOPS <- 0
+            NROWS <- 0
+            addtime <- system.time({
             while( newrows <- theoryRows( LPIenv , lag ) ){
-                
+                NROWS <- NROWS + LPIenv[["nrows"]]
                 ## If new rows were produced
                 if( LPIenv[["nrows"]]>0){
                     
@@ -138,12 +143,12 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
                         
                     }else if(LPIenv$solver=='fishs'){
                         
-                        fishs.add( e = solver.env ,
+                        FLOPS <- FLOPS + as.double(fishs.add( e = solver.env ,
                                   A.data = LPIenv[["arows"]][1:(LPIenv[["nrows"]]*(LPIenv[["nGates"]][lag]+1))] ,
                                   I.data = LPIenv[["irows"]][1:(LPIenv[["nrows"]]*(LPIenv[["nGates"]][lag]+1))] ,
                                   M.data = LPIenv[["meas"]][1:LPIenv[["nrows"]]] ,
                                   E.data = LPIenv[["mvar"]][1:LPIenv[["nrows"]]]
-                                  )
+                                  ))
                         
                     }else if(LPIenv[["solver"]] == "deco" ){
                         
@@ -157,6 +162,7 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
                     }
                 }
             }
+            })
         }
         
         ## Make sure that the original value is
@@ -186,13 +192,18 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     assign( "lagprof" , solver.env[["solution"]] , lagprof )
     assign( "covariance" , solver.env[["covariance"]] , lagprof )
     assign( "lagnum" , lag , lagprof )
+    assign( "FLOPS" , FLOPS , lagprof )
+    assign( "addtime" , addtime , lagprof)
+    assign( "NROWS" , NROWS , lagprof )
     
     ## Kill the solver object
     if(LPIenv$solver=="rlips") rlips.dispose(solver.env)
     
-    ## if(lag==1){
-    ##     Rprof(NULL)
-    ## }
+#    if(lag==1){
+#        Rprof(NULL)
+#        save(FLOPS=FLOPS,NROWS=NROWS,addtime=addtime,file=FlopsFile)
+#        save(LPIenv=LPIenv,file=EnvFile)
+#    }
     
     ## Conversion to list because it is faster to transfer
     return(as.list(lagprof))

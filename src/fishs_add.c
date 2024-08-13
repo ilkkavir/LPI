@@ -25,27 +25,34 @@
 
 */
 
-SEXP fishs_add( const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas  , const SEXP var  , const SEXP nx   , const SEXP nrow  )               
+SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas  , const SEXP var  , const SEXP nx   , const SEXP nrow  )               
 {
   Rcomplex *q = COMPLEX(Qvec);
+  Rcomplex * restrict qtmp;
+
   Rcomplex *y = COMPLEX(yvec);
+  Rcomplex * restrict ytmp;
+
+  Rcomplex *acpy = COMPLEX(arows);
+  Rcomplex *atmp;
+
+  int *icpy = LOGICAL(irows);  
+  int *itmp;  
+
+  Rcomplex * restrict mcpy = COMPLEX(meas);
+
+  double * restrict vcpy = REAL(var);
+
   int n  = *INTEGER(nx);
+
   int nr = *INTEGER(nrow);
+
   int i  = 0;
   int j  = 0;
   int l  = 0;
 
-  Rcomplex * restrict qtmp;
-  Rcomplex * restrict acpy = COMPLEX(arows);
-  Rcomplex * restrict atmp;
-  int * restrict icpy = LOGICAL(irows);  
-  int * restrict itmp;  
-  Rcomplex * restrict ytmp;
-  Rcomplex * restrict mcpy = COMPLEX(meas);
-  double   * restrict vcpy = REAL(var);
-
-  SEXP                success;
-  int      * restrict i_success;
+  SEXP success;
+  int * restrict i_success;
 
   // success output
   PROTECT( success = allocVector( LGLSXP , 1 ) );
@@ -79,6 +86,9 @@ SEXP fishs_add( const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEX
 	  if( *itmp ){
 	    qtmp->r += ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy;
 	    qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy;
+
+	    // Use the return value as a flop counter for testing. Will overflow in many cases...
+	    *i_success += 8;
 	  }
 	  
 	  // Increment the second theory matrix counter
@@ -87,17 +97,20 @@ SEXP fishs_add( const SEXP Qvec , const SEXP yvec , const SEXP arows , const SEX
 	  
 	  // Increment the information matrix counter
 	  ++qtmp;
-	  
+
 	}
 	
 	
 	// Add the corresponding measurement to the y-vector
 	ytmp->r += ( mcpy->r * acpy->r + mcpy->i * acpy->i ) / *vcpy;
 	ytmp->i += ( mcpy->i * acpy->r - mcpy->r * acpy->i ) / *vcpy;
+
+	// Use the return value as a flop counter for testing. Will overflow in many cases...
+	*i_success += 8;
 	
 	// Increment the y-vector counter
 	++ytmp;
-	
+
       }else{
 	// Jump to the next diagonal element in q
 	qtmp += n-i;
