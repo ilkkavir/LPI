@@ -61,8 +61,6 @@ SEXP average_power( SEXP cdata , SEXP idatatx , SEXP idatarx , SEXP ndata , SEXP
   int k, i, j;
   int pindcur;
   int pindmax;
-  int npulse;
-  int indprev;
   int p1;
   int sameamb;
   int r;
@@ -128,6 +126,7 @@ SEXP average_power( SEXP cdata , SEXP idatatx , SEXP idatarx , SEXP ndata , SEXP
 
   // The first falling pulse edge at least
   // maxr samples from the beginning
+  p1 = nedges;
   for( k = 0 ; k < nedges ; ++k )
     {
       if( pedges[ k ] > maxr )

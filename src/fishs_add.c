@@ -69,7 +69,6 @@ SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , co
     // Pointers to y-vector and Fisher information matrix
     ytmp = y;
     qtmp = q;
-
     // Go through all range gates
     for( i = 0 ; i < n ; ++i ){
 
@@ -78,43 +77,43 @@ SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , co
       itmp = icpy;
 
       if ( *icpy ) {
-	// Go through all columns in the upper triangular part
-	for( j = 0 ; j < ( n - i ) ; ++j ){
-	  
-	  // Add information
+        // Go through all columns in the upper triangular part
+        for( j = 0 ; j < ( n - i ) ; ++j ){
+          
+          // Add information
 
-	  if( *itmp ){
-	    qtmp->r += ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy;
-	    qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy;
+          if( *itmp ){
+            qtmp->r += ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy;
+            qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy;
 
-	    // Use the return value as a flop counter for testing. Will overflow in many cases...
-	    *i_success += 8;
-	  }
-	  
-	  // Increment the second theory matrix counter
-	  ++atmp;
-	  ++itmp;
-	  
-	  // Increment the information matrix counter
-	  ++qtmp;
+            // Use the return value as a flop counter for testing. Will overflow in many cases...
+            *i_success += 8;
+          }
+          
+          // Increment the second theory matrix counter
+          ++atmp;
+          ++itmp;
+          
+          // Increment the information matrix counter
+          ++qtmp;
 
-	}
-	
-	
-	// Add the corresponding measurement to the y-vector
-	ytmp->r += ( mcpy->r * acpy->r + mcpy->i * acpy->i ) / *vcpy;
-	ytmp->i += ( mcpy->i * acpy->r - mcpy->r * acpy->i ) / *vcpy;
+        }
+        
+        
+        // Add the corresponding measurement to the y-vector
+        ytmp->r += ( mcpy->r * acpy->r + mcpy->i * acpy->i ) / *vcpy;
+        ytmp->i += ( mcpy->i * acpy->r - mcpy->r * acpy->i ) / *vcpy;
 
-	// Use the return value as a flop counter for testing. Will overflow in many cases...
-	*i_success += 8;
-	
-	// Increment the y-vector counter
-	++ytmp;
+        // Use the return value as a flop counter for testing. Will overflow in many cases...
+        *i_success += 8;
+        
+        // Increment the y-vector counter
+        ++ytmp;
 
       }else{
-	// Jump to the next diagonal element in q
-	qtmp += n-i;
-	++ytmp;
+        // Jump to the next diagonal element in q
+        qtmp += n-i;
+        ++ytmp;
       }
 
       // Increment the theory matrix counter
@@ -134,5 +133,3 @@ SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , co
   return(success);
 
 }
-
-

@@ -38,7 +38,6 @@ SEXP clutter_subtract( const SEXP tcdata , const SEXP tidata , SEXP rcdata , con
 
   int i;
   int j;
-  int k;
   int r;
   int isum;
   int nx;

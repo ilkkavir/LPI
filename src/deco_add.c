@@ -44,7 +44,6 @@ SEXP deco_add(  SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , co
   int nr = *INTEGER(nrow);
 
   int i  = 0;
-  int j  = 0;
   int l  = 0;
 
   SEXP success;

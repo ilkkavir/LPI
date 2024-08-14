@@ -38,8 +38,6 @@ SEXP clutter_meas( const SEXP tcdata , const SEXP tidata , const SEXP rcdata , c
   const int r1 = *INTEGER( rmax );
 
   int i;
-  int j;
-  int k;
   int r;
   int isum;
   int nx;

@@ -43,8 +43,8 @@ SEXP resample( SEXP cdata , SEXP idata , SEXP ndata , SEXP nup , SEXP nfilter , 
   const int ns = *INTEGER(nfirst);
   const int nsf = *INTEGER(nfirstfrac);
   const int ipar = *LOGICAL(ipartial);
-  uint64_t i, j, k, l, m, n;
-  double frac;
+  uint64_t i, j, k, l;
+  double frac=0.;
   Rcomplex tmpsum;
   int tmpi[2];
 

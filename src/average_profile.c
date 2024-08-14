@@ -36,7 +36,6 @@ SEXP average_profile( SEXP cdata , SEXP idata , SEXP ndata , SEXP N_CODE)
 
   double *aver;
   double *avei;
-  Rcomplex *ad;
   R_len_t *nave;
   R_len_t k;
   R_len_t ind1 , ind2, ipp_count;
