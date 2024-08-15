@@ -47,9 +47,9 @@ SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , co
 
   int nr = *INTEGER(nrow);
 
-  int i  = 0;
-  int j  = 0;
-  int l  = 0;
+  int i = 0;
+  int j = 0;
+  int l = 0;
 
   SEXP success;
   int * restrict i_success;
@@ -77,18 +77,20 @@ SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , co
       itmp = icpy;
 
       if ( *icpy ) {
+
         // Go through all columns in the upper triangular part
+	#pragma GCC ivdep
         for( j = 0 ; j < ( n - i ) ; ++j ){
           
           // Add information
 
           if( *itmp ){
-            qtmp->r += ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy;
-            qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy;
-
-            // Use the return value as a flop counter for testing. Will overflow in many cases...
-            *i_success += 8;
-          }
+	    qtmp->r += ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy;
+	    qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy;
+	    
+	    // Use the return value as a flop counter for testing. Will overflow in many cases...
+	    *i_success += 10;
+	  }
           
           // Increment the second theory matrix counter
           ++atmp;
@@ -98,14 +100,52 @@ SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , co
           ++qtmp;
 
         }
-        
-        
+
+	
+        /* // Go through all columns in the upper triangular part. Divided into two loops to enable vectorization. */
+	/* #pragma GCC ivdep */
+        /* for( j = 0 ; j < ( n - i ) ; ++j ){ */
+          
+        /*   // Add information, real part */
+	/*   qtmp->r += ( acpy->r * atmp->r  + acpy->i * atmp->i ) / *vcpy; */
+	  
+        /*   // Increment the second theory matrix counter */
+        /*   ++atmp; */
+        /*   ++itmp; */
+          
+        /*   // Increment the information matrix counter */
+        /*   ++qtmp; */
+	  
+        /* } */
+
+	/* atmp = acpy; */
+	/* itmp = icpy; */
+	/* qtmp -= n-i; */
+
+	
+	/* //#pragma GCC ivdep */
+        /* for( j = 0 ; j < ( n - i ) ; ++j ){ */
+	  
+        /*   // Add information, imaginary part */
+	/*   qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy; */
+          
+        /*   // Increment the second theory matrix counter */
+        /*   ++atmp; */
+        /*   ++itmp; */
+          
+        /*   // Increment the information matrix counter */
+        /*   ++qtmp; */
+	  
+        /* } */
+
+	/* *i_success += (n-i)*10; */
+
         // Add the corresponding measurement to the y-vector
-        ytmp->r += ( mcpy->r * acpy->r + mcpy->i * acpy->i ) / *vcpy;
+	ytmp->r += ( mcpy->r * acpy->r + mcpy->i * acpy->i ) / *vcpy;
         ytmp->i += ( mcpy->i * acpy->r - mcpy->r * acpy->i ) / *vcpy;
 
         // Use the return value as a flop counter for testing. Will overflow in many cases...
-        *i_success += 8;
+        *i_success += 10;
         
         // Increment the y-vector counter
         ++ytmp;

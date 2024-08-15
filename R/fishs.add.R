@@ -21,7 +21,8 @@
 ##
 
 fishs.add <- function( e , A.data , I.data ,  M.data ,  E.data=1 )
-  {
+{
+
 
     # Number of theory rows to add
     nrow <- as.integer(length(M.data))
