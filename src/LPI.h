@@ -38,9 +38,11 @@ SEXP lagged_products_r( SEXP rdata1 , SEXP rdata2 , SEXP prdata , SEXP ndata1 , 
 // Theory matrix construction
 SEXP theory_rows_alloc( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP rvar , SEXP ndata , SEXP ncur , SEXP nend , SEXP rlims , SEXP nranges , SEXP fitsize , SEXP background, SEXP remoterx ); 
 SEXP theory_rows( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP rvar , SEXP ndata , SEXP ncur , SEXP nend , SEXP rlims , SEXP nranges , SEXP arows , SEXP irows , SEXP mvec , SEXP mvar , SEXP nrows , SEXP background, SEXP remoterx );
+SEXP theory_rows2( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP rvar , SEXP ndata , SEXP ncur , SEXP nend , SEXP rlims , SEXP nranges , SEXP arows , SEXP arowsI , SEXP irows , SEXP mvecR , SEXP mvecI , SEXP mvar , SEXP nrows , SEXP background, SEXP remoterx );
 
 // Inverse problem solvers
 SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
+SEXP fishs_add2( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const SEXP arowsI , const SEXP irows , const SEXP measR , const SEXP measI , const SEXP var , const SEXP nx , const SEXP nrow );
 SEXP deco_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
 SEXP dummy_add( SEXP msum , SEXP vsum , SEXP rmin , SEXP rmax , SEXP mdata , SEXP mambig , SEXP iamb , SEXP iprod , SEXP edata , SEXP ndata );
 

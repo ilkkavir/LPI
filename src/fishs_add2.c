@@ -1,4 +1,3 @@
-// file:fishs_add.c
 // (c) 2010- University of Oulu, Finland
 // Written by Ilkka Virtanen <ilkka.i.virtanen@oulu.fi>
 // Licensed under FreeBSD license.
@@ -25,45 +24,44 @@
 
 */
 
-SEXP fishs_add2( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas  , const SEXP var  , const SEXP nx   , const SEXP nrow  )               
+SEXP fishs_add2( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const SEXP arowsI , const SEXP irows , const SEXP measR , const SEXP measI  , const SEXP var  , const SEXP nx   , const SEXP nrow  )               
 {
-  Rcomplex *q = COMPLEX(Qvec);
-  Rcomplex * restrict qtmp;
+  double *qR = REAL(QvecR);
+  double *qI = REAL(QvecI);
+  double * restrict qtmpR;
+  double * restrict qtmpI;
 
-  Rcomplex *y = COMPLEX(yvec);
-  Rcomplex * restrict ytmp;
+  double *yR = REAL(yvecR);
+  double *yI = REAL(yvecI);
+  double * restrict ytmpR;
+  double * restrict ytmpI;
 
-  Rcomplex *acpy = COMPLEX(arows);
-  Rcomplex *atmp;
+  double *acpyR = REAL(arowsR);
+  double *acpyI = REAL(arowsI);
+  double *atmpR;
+  double *atmpI;
 
   int *icpy = LOGICAL(irows);  
   int *itmp;  
 
-  Rcomplex * restrict mcpy = COMPLEX(meas);
+  double * restrict mcpyR = REAL(measR);
+  double * restrict mcpyI = REAL(measI);
 
   double * restrict vcpy = REAL(var);
 
-
-  double * qtmpr;
-  double * qtmpi;
-  double * qtmpr2;
-  double * qtmpi2;
-  double * ytmpr;
-  double * ytmpi;
-  double * ytmpr2;
-  double * ytmpi2;
-  
   int n  = *INTEGER(nx);
 
   int nr = *INTEGER(nrow);
 
-  int i  = 0;
-  int j  = 0;
-  int l  = 0;
+  int i = 0;
+  int j = 0;
+  int l = 0;
+  int k = 0;
+  int addlines = 0;
+  int naddlines  = 0;
 
   SEXP success;
   int * restrict i_success;
-
 
   // success output
   PROTECT( success = allocVector( LGLSXP , 1 ) );
@@ -73,188 +71,106 @@ SEXP fishs_add2( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , c
 
   // set the success output
   *i_success = 1;
-  
-  qtmpr = (double*)calloc(n*n,sizeof(double));
-  qtmpi = (double*)calloc(n*n,sizeof(double));
-  
-  ytmpr = (double*)calloc(n,sizeof(double));
-  ytmpi = (double*)calloc(n,sizeof(double));
-  
 
   // Go through all theory matrix rows
   for( l = 0 ; l < nr ; ++l ){
 
     // Pointers to y-vector and Fisher information matrix
-    ytmp = y;
-    qtmp = q;
-
-    qtmpr2 = qtmpr;
-    qtmpi2 = qtmpi;
-
-    ytmpr2 = ytmpr;
-    ytmpi2 = ytmpi;
-
-    for ( i = 0 ; i < n ; ++i ){
-      *ytmpr2 = 0.;
-      *ytmpi2 = 0.;
-      ++ytmpr2;
-      ++ytmpi2;
-      for ( j = 0 ; j < n ; ++j ){
-	*qtmpr2 = 0.;
-	*qtmpi2 = 0.;
-	++qtmpr2;
-	++qtmpi2;
-      }
-    }
-    qtmpr2 = qtmpr;
-    qtmpi2 = qtmpi;
-
-    ytmpr2 = ytmpr;
-    ytmpi2 = ytmpi;
-
-
+    ytmpR = yR;
+    ytmpI = yI;
+    qtmpR = qR;
+    qtmpI = qI;
     // Go through all range gates
     for( i = 0 ; i < n ; ++i ){
 
       // Second pointer to the theory matrix
-      atmp = acpy;
+      atmpR = acpyR;
+      atmpI = acpyI;
       itmp = icpy;
-      
+
       if ( *icpy ) {
-	
-	
-	// Go through all columns in the upper triangular part
-	for( j = 0 ; j < ( n - i ) ; ++j ){
+
+        // Go through all columns in the upper triangular part
+	// Check in blocks of 8 and skip those that contain only zeros.
+        for( j = 0 ; j < ( n - i ) ; j+=8 ){
 	  
-	  // Calculate information
-	  if ( *itmp) {
-	    *qtmpr2 = ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy;
-	    *qtmpi2 = ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy;
+	  addlines = 0;
+	  naddlines = 0;
+	  for ( k = 0 ; ( k < 8 ) & ((k+j) < ( n - i )) ; ++k ){
+	    addlines += *itmp;
+	    ++itmp;
+	    ++naddlines;
 	  }
-	  // Increment the second theory matrix counter
-	  ++atmp;
-	  ++itmp;
 	  
-	  // Increment the information matrix counter (the temporary vector)
-	  ++qtmpr2;
-	  ++qtmpi2;
+	  if (addlines){
+#pragma GCC ivdep
+	    for (k = 0 ; k<naddlines ; ++k ){
+	      // Add information
+	      
+	      //if( *itmp ){
+	      *qtmpR += ( *acpyR * *atmpR + *acpyI * *atmpI ) / *vcpy;
+	      *qtmpI += ( *acpyR * *atmpI - *acpyI * *atmpR ) / *vcpy;
+	      /* *qtmpR += ( *acpyR * *atmpR + *acpyI * *atmpI ) / *vcpy; */
+	      /* *qtmpI += ( *acpyR * *atmpI - *acpyI * *atmpR ) / *vcpy; */
+	      
+	      // Use the return value as a flop counter for testing. Will overflow in many cases...
+	      *i_success += 10;
+	      //}
+	      
+	      
+	      // Increment the second theory matrix counter
+	      ++atmpR;
+	      ++atmpI;
+	      
+	      // Increment the information matrix counter
+	      ++qtmpR;
+	      ++qtmpI;
+	    }
+	  }else{
+	    atmpR += naddlines;
+	    atmpI += naddlines;
+	    qtmpR += naddlines;
+	    qtmpI += naddlines;
+	  }
 	  
-	}
+        }
 	
 	
-	/* // Go through all columns in the upper triangular part */
-	/* for( j = 0 ; j < ( n - i ) ; ++j ){ */
-	  
-	/*   // Add information */
-
-	/*   if( *itmp ){ */
-	/*     qtmp->r += ( acpy->r * atmp->r + acpy->i * atmp->i ) / *vcpy; */
-	/*     qtmp->i += ( acpy->r * atmp->i - acpy->i * atmp->r ) / *vcpy; */
-
-	/*     // Use the return value as a flop counter for testing. Will overflow in many cases... */
-	/*     //	    *i_success += 8; */
-	/*   } */
-	  
-	/*   // Increment the second theory matrix counter */
-	/*   ++atmp; */
-	/*   ++itmp; */
-	  
-	/*   // Increment the information matrix counter */
-	/*   ++qtmp; */
-
-	/* } */
+        // Add the corresponding measurement to the y-vector
+	*ytmpR += ( *mcpyR * *acpyR + *mcpyI * *acpyI ) / *vcpy;
+        *ytmpI += ( *mcpyI * *acpyR - *mcpyR * *acpyI ) / *vcpy;
 	
+        // Use the return value as a flop counter for testing. Will overflow in many cases...
+        *i_success += 10;
+        
+        // Increment the y-vector counter
+        ++ytmpR;
+        ++ytmpI;
 	
-	// Add the corresponding measurement to the y-vector
-	*ytmpr2 = ( mcpy->r * acpy->r + mcpy->i * acpy->i ) / *vcpy;
-	*ytmpi2 = ( mcpy->i * acpy->r - mcpy->r * acpy->i ) / *vcpy;
-	
-	// Increment the y-vector counter
-	++ytmpr2;
-	++ytmpi2;
-	/* // Add the corresponding measurement to the y-vector */
-	/* ytmp->r += ( mcpy->r * acpy->r + mcpy->i * acpy->i ) / *vcpy; */
-	/* ytmp->i += ( mcpy->i * acpy->r - mcpy->r * acpy->i ) / *vcpy; */
-
-	/* // Use the return value as a flop counter for testing. Will overflow in many cases... */
-	/* *i_success += 8; */
-	
-	/* // Increment the y-vector counter */
-	/* ++ytmp; */
-
       }else{
-      	// Jump to the next diagonal element in q
-	qtmpr2 += n-i;
-	qtmpi2 += n-i;
-	++ytmpr2;
-	++ytmpi2;
-
-	/* // Jump to the next diagonal element in q */
-	/* qtmp += n-i; */
-	/* ++ytmp; */
+        // Jump to the next diagonal element in q
+        qtmpR += n-i;
+        qtmpI += n-i;
+        ++ytmpR;
+        ++ytmpI;
       }
 
       // Increment the theory matrix counter
-      ++acpy;
+      ++acpyR;
+      ++acpyI;
       ++icpy;
 
     }
-      
-    // add the information to Q and y
-    ytmp = y;
-    qtmp = q;
-    
-    qtmpr2 = qtmpr;
-    qtmpi2 = qtmpi;
-    
-    ytmpr2 = ytmpr;
-    ytmpi2 = ytmpi;
 
-    // Go through all range gates
-    for( i = 0 ; i < n ; ++i ){
-      
-      // Go through all columns in the upper triangular part
-      for( j = 0 ; j < ( n - i ) ; ++j ){
-	
-	// Add information
-	qtmp->r += *qtmpr2;
-	qtmp->i += *qtmpi2;
-	
-	// Increment the information matrix counter (the temporary vector)
-	++qtmpr2;
-	++qtmpi2;
-	++qtmp;
-	
-      }
-	
-      ytmp->r += *ytmpr2;
-      ytmp->i += *ytmpi2;
-      
-      // Increment the y-vector counter
-      ++ytmpr2;
-      ++ytmpi2;
-      ++ytmp;
-      
-    }
-    
-    
     // Increment the variance and measurement vector counters
-    ++mcpy;
+    ++mcpyR;
+    ++mcpyI;
     ++vcpy;
-      
-    
-  }
 
-  free(qtmpr);
-  free(qtmpi);
-  free(ytmpr);
-  free(ytmpi);
-  
+  }
 
   UNPROTECT(1);
 
   return(success);
 
 }
-
-

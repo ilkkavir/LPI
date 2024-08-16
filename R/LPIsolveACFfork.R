@@ -99,7 +99,7 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     LPIdatalist.final <<- prepareLPIdata( LPIparam , LPIdatalist.raw )
                     
                     ## add some missing vectors and convert into an environment in the global workspace
-                    initLPIenv(substitute(LPIdatalist.final))
+                    initLPIenv2(substitute(LPIdatalist.final))
                     
                     
                     ## Number of lags, each full lag
@@ -125,8 +125,10 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
 
                     ## run the actual analysis in parallel using all available cores
                     ncl <- parallelly::availableCores()
-#                    ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , mc.cores=ncl )
-                    ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , intPeriod=intPeriod, mc.cores=ncl )
+                                        #                    ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , mc.cores=ncl )
+                    analysisTime <- system.time({
+                        ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , intPeriod=intPeriod, mc.cores=ncl )
+                        })
                     
                     ## Collect the lag numbers from ACF list
                     lagnums <- x
@@ -194,7 +196,7 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     ACFreturn[["lag"]]        <- lgates
                     ACFreturn[["range"]]      <- rgates
                     ACFreturn[["nGates"]]     <- ngates
-                    
+                    ACFreturn[["analysisTime"]] <- analysisTime
                     
                     ## Store the results
                     eval( as.name( LPIparam[["resultSaveFunction"]]) )( LPIparam , intPeriod , ACFreturn )

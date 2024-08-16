@@ -52,7 +52,7 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     if(LPIenv$solver=="rlips"){
         solver.env <- rlips.init( ncols = LPIenv$nGates[lag] + 1 , nrhs = 1 , type = LPIenv$rlips.options[["type"]] , nbuf = LPIenv$rlips.options[["nbuf"]] , workgroup.size = LPIenv$rlips.options[["workgroup.size"]] )
     }else if ( LPIenv$solver=="fishs" ){
-        solver.env <- fishs.init( LPIenv[["nGates"]][lag] + 1 )
+        solver.env <- fishs.init2( LPIenv[["nGates"]][lag] + 1 )
     }else if ( LPIenv[["solver"]]=="deco" ){
         solver.env <- deco.init( LPIenv[["nGates"]][lag] + 1 )
     }else if ( LPIenv[["solver"]]=="dummy" ){
@@ -127,7 +127,7 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
             FLOPS <- 0
             NROWS <- 0
             addtime <- system.time({
-            while( newrows <- theoryRows( LPIenv , lag ) ){
+            while( newrows <- theoryRows2( LPIenv , lag ) ){
                 NROWS <- NROWS + LPIenv[["nrows"]]
                 ## If new rows were produced
                 if( LPIenv[["nrows"]]>0){
@@ -143,11 +143,21 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
                         
                     }else if(LPIenv$solver=='fishs'){
                         
-                        FLOPS <- FLOPS + as.double(fishs.add( e = solver.env ,
-                                  A.data = LPIenv[["arows"]][1:(LPIenv[["nrows"]]*(LPIenv[["nGates"]][lag]+1))] ,
-                                  I.data = LPIenv[["irows"]][1:(LPIenv[["nrows"]]*(LPIenv[["nGates"]][lag]+1))] ,
-                                  M.data = LPIenv[["meas"]][1:LPIenv[["nrows"]]] ,
-                                  E.data = LPIenv[["mvar"]][1:LPIenv[["nrows"]]]
+                        ## FLOPS <- FLOPS + as.double(fishs.add( e = solver.env ,
+                        ##           A.data = LPIenv[["arows"]] ,
+                        ##           I.data = LPIenv[["irows"]] ,
+                        ##           M.data = LPIenv[["meas"]] ,
+                        ##           E.data = LPIenv[["mvar"]] ,
+                        ##           nrow = LPIenv[['nrows']]
+                        ##           ))
+                        FLOPS <- FLOPS + as.double(fishs.add2( e = solver.env ,
+                                  A.Rdata = LPIenv[["arowsR"]],
+                                  A.Idata = LPIenv[["arowsI"]] ,
+                                  I.data = LPIenv[["irows"]] ,
+                                  M.Rdata = LPIenv[["measR"]] ,
+                                  M.Idata = LPIenv[["measI"]] ,
+                                  E.data = LPIenv[["mvar"]],
+                                  nrow = LPIenv[["nrows"]]
                                   ))
                         
                     }else if(LPIenv[["solver"]] == "deco" ){
@@ -176,7 +186,7 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     if(LPIenv$solver=="rlips"){
         rlips.solve2( e = solver.env ,full.covariance = LPIenv[["fullCovar"]])
     }else if(LPIenv$solver=="fishs"){
-        fishs.solve( e = solver.env , full.covariance = LPIenv[["fullCovar"]] )
+        fishs.solve2( e = solver.env , full.covariance = LPIenv[["fullCovar"]] )
     }else if(LPIenv[["solver"]]=="deco"){
         deco.solve( e = solver.env )
     }else if(LPIenv[["solver"]]=="dummy"){

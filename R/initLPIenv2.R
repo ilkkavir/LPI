@@ -18,7 +18,7 @@
 ##    the global workspace.
 ## 
 
-initLPIenv <- function( LPIenv.name )
+initLPIenv2 <- function( LPIenv.name )
   {
 
     # Get the LPI environment (transferred as a list,
@@ -42,14 +42,14 @@ initLPIenv <- function( LPIenv.name )
     
     # Theory matrix rows, one extra row because
     # theory_rows needs a temp vector
-    assign( 'arows', vector(mode='complex',length=((max(LPIenv[["nGates"]])+1)*(LPIenv[["nBuf"]]+1))), LPIenv )
+#    assign( 'arows', vector(mode='complex',length=((max(LPIenv[["nGates"]])+1)*(LPIenv[["nBuf"]]+1))), LPIenv )
     
     # Indices for theory matrix rows, one extra row because
     # theory_rows needs a temp vector
     assign( 'irows', vector(mode='logical',length=((max(LPIenv[["nGates"]])+1)*(LPIenv[["nBuf"]]+1))), LPIenv )
     
     # Measurement vector
-    assign( 'meas' , vector(mode='complex',length=LPIenv[["nBuf"]])                             , LPIenv )
+#    assign( 'meas' , vector(mode='complex',length=LPIenv[["nBuf"]])                             , LPIenv )
     
     # Measurement variances
     assign( 'mvar' , vector(mode='numeric',length=LPIenv[["nBuf"]])                             , LPIenv )
@@ -63,12 +63,24 @@ initLPIenv <- function( LPIenv.name )
     storage.mode( LPIenv$cprod ) <- 'complex'
     storage.mode( LPIenv$iprod ) <- 'logical'
     storage.mode( LPIenv$var ) <- 'double'
-    storage.mode( LPIenv$arows ) <- 'complex'
+#    storage.mode( LPIenv$arows ) <- 'complex'
     storage.mode( LPIenv$irows ) <- 'logical'
-    storage.mode( LPIenv$meas ) <- 'complex'
+#    storage.mode( LPIenv$meas ) <- 'complex'
     storage.mode( LPIenv$mvar ) <- 'double'
     storage.mode( LPIenv$nrows ) <- 'integer'
 
+      ## real and imaginary parts separately...
+      assign( 'arowsR' , vector( mode='double' , length=((max(LPIenv[["nGates"]])+1)*(LPIenv[["nBuf"]]+1))), LPIenv )
+      assign( 'arowsI' , vector( mode='double' , length=((max(LPIenv[["nGates"]])+1)*(LPIenv[["nBuf"]]+1))), LPIenv )
+      assign( 'measR'  , vector( mode='double' , length=LPIenv[["nBuf"]]) , LPIenv )
+      assign( 'measI'  , vector( mode='double' , length=LPIenv[["nBuf"]]) , LPIenv )
+
+      storage.mode( LPIenv$arowsR ) <- 'double'
+      storage.mode( LPIenv$arowsI ) <- 'double'
+      storage.mode( LPIenv$measR ) <- 'double'
+      storage.mode( LPIenv$measI ) <- 'double'
+
+      
     # Copy the modified environment back
     # to the user workspace
     assign( paste(LPIenv.name) , LPIenv , envir=.GlobalEnv)

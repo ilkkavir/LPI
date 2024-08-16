@@ -20,24 +20,11 @@
 ##  success TRUE if the rows were successfully added.
 ##
 
-fishs.add <- function( e , A.data , I.data ,  M.data ,  E.data , nrow )
+fishs.add2 <- function( e , A.Rdata , A.Idata , I.data ,  M.Rdata , M.Idata ,  E.data , nrow )
 {
 
 
-    ## # Number of theory rows to add
-    ## nrow <- as.integer(length(M.data))
-
-    ## # Variance vector
-    ## E.data <- rep(E.data,length.out=nrow)
-
-    ## # Check storage modes before calling the c function
-    ## storage.mode(A.data) <- "complex"
-    ## storage.mode(I.data) <- "logical"
-    ## storage.mode(M.data) <- "complex"
-    ## storage.mode(E.data) <- "double"
-    ## storage.mode(nrow)   <- "integer"
-
     # Call the c function
-    return( .Call( "fishs_add" , e[["Qvec"]] , e[["y"]] , A.data , I.data , M.data , E.data , e[["ncol"]] , nrow ))
+    return( .Call( "fishs_add2" , e[["QvecR"]] , e[["QvecI"]] , e[["yR"]] , e[["yI"]] , A.Rdata , A.Idata , I.data , M.Rdata , M.Idata , E.data , e[["ncol"]] , nrow ))
 
   }

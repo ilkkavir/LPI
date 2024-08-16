@@ -130,6 +130,8 @@ LPI <- function(dataInputFunction,
     ## number of slave processes (one core is automatically saved for the master process)
     Ncl <- length(cl)
     LPIparam[["Ncluster"]] <- Ncl
+
+    save(LPIparam=LPIparam,file=file.path(resultDir,'LPIparam.Rdata'))
     
     ## # find a reasonable number of parallel integration periods (Niper <= Ncl & Niper*Nlags >= Ncl)
     ## Nlags <- length(LPIparam[["lagLimits"]]) - 1
