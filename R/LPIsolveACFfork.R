@@ -124,8 +124,12 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     
 
                     ## run the actual analysis in parallel using all available cores
-                    ncl <- parallelly::availableCores()
-                                        #                    ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , mc.cores=ncl )
+                    if( is.null(LPIparam$nCores)){
+                        ncl <- parallelly::availableCores()
+                    }else{
+                        ncl <- LPIparam$nCores
+                    }
+                    ##ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , mc.cores=ncl )
                     analysisTime <- system.time({
                         ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , intPeriod=intPeriod, mc.cores=ncl )
                         })

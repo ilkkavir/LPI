@@ -40,7 +40,8 @@ LPI <- function(dataInputFunction,
                 dataEndTimeFunction="currentTimes",
                 resultSaveFunction = "LPIsaveACF",
                 paramUpdateFunction="noUpdate",
-                cl,
+                cl=NULL,
+                nCores = NULL,
                 ...
                 ){
     
@@ -128,7 +129,11 @@ LPI <- function(dataInputFunction,
       
 
     ## number of slave processes (one core is automatically saved for the master process)
-    Ncl <- length(cl)
+    if(is.null(cl)){
+        Ncl <- 1
+    }else{
+        Ncl <- length(cl)
+    }
     LPIparam[["Ncluster"]] <- Ncl
 
     save(LPIparam=LPIparam,file=file.path(resultDir,'LPIparam.Rdata'))
@@ -136,8 +141,12 @@ LPI <- function(dataInputFunction,
     ## # find a reasonable number of parallel integration periods (Niper <= Ncl & Niper*Nlags >= Ncl)
     ## Nlags <- length(LPIparam[["lagLimits"]]) - 1
 
-    # let the cluster nodes do the work
-    print(unlist(snow::clusterApply( cl , seq(Ncl) , fun=LPIsolveACFfork , LPIparam )))
+    ## let the cluster nodes do the work
+    if (is.null(cl)){
+        print( unlist( LPIsolveACFfork( 1 , LPIparam  ) ) )
+    }else{
+        print(unlist(snow::clusterApply( cl , seq(Ncl) , fun=LPIsolveACFfork , LPIparam )))
+    }
 
     ## this loop is now in LPIsolveACFfork
     
