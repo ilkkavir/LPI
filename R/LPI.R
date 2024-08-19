@@ -136,7 +136,9 @@ LPI <- function(dataInputFunction,
     }
     LPIparam[["Ncluster"]] <- Ncl
 
-    save(LPIparam=LPIparam,file=file.path(resultDir,'LPIparam.Rdata'))
+    if(!is.na(LPIparam$resultDir)){
+        save(LPIparam=LPIparam,file=file.path(resultDir,'LPIparam.Rdata'))
+    }
     
     ## # find a reasonable number of parallel integration periods (Niper <= Ncl & Niper*Nlags >= Ncl)
     ## Nlags <- length(LPIparam[["lagLimits"]]) - 1
