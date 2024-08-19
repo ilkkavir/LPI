@@ -61,6 +61,7 @@ stripACF <- function( ACFlist , rgates , lags , fullCovar=FALSE)
     dimnames(ACFlist2[["ACF"]]) <- list(paste('gate',seq(ngates),sep=''),paste('lag',seq(nlags),sep=''))
     dimnames(ACFlist2[["var"]]) <- list(paste('gate',seq(ngates),sep=''),paste('lag',seq(nlags),sep=''))
 
+      ACFlist2[["analysisTime"]] <- ACFlist[["analysisTime"]]
 
     return(ACFlist2)
 
