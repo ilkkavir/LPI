@@ -90,10 +90,67 @@ SEXP fishs_add2( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 
       if ( *icpy ) {
 
+
+/* A FASTER VERSION BELOW. THIS ONE MINIMIZES FLOPS, BUT APPARENTLY THE VARIABLE BLOCK SIZE SLOWS DOWN THE COMPUTATIONS */
+/* 	naddlines = 0; */
+/* 	j = 0; */
+/* 	// check all elements in this row */
+/* 	while ( j < ( n - i ) ){ */
+/* 	  // the non-zero data are in continuous blocks due to the pulsed transmissions. Find length of the current block. */
+/* 	  if(*itmp){ */
+/* 	    ++naddlines; */
+/* 	  }else{ */
+/* 	    // add information from this block (pulse) */
+/* 	    if (naddlines){ */
+/* #pragma GCC ivdep */
+/* 	      for (k = 0 ; k < naddlines ; ++k ){ */
+/* 		*qtmpR += ( *acpyR * *atmpR + *acpyI * *atmpI ) / *vcpy; */
+/* 		*qtmpI += ( *acpyR * *atmpI - *acpyI * *atmpR ) / *vcpy; */
+/* 		++atmpR; */
+/* 		++atmpI; */
+/* 		++qtmpR; */
+/* 		++qtmpI; */
+/* 		*i_success += 10; */
+/* 	      } */
+/* 	      // the lines have been added, set naddlines to 0 */
+/* 	      naddlines = 0; */
+/* 	      // just increment the counters when zero-data are found.  */
+/* 	    }else{ */
+/* 	      ++atmpR; */
+/* 	      ++atmpI; */
+/* 	      ++qtmpR; */
+/* 	      ++qtmpI; */
+/* 	    } */
+/* 	  } */
+/* 	  ++j; */
+/* 	  ++itmp; */
+/* 	} */
+/* 	// add information from pulses at the edge */
+/* 	if (naddlines){ */
+/* #pragma GCC ivdep */
+/* 	  for (k = 0 ; k < naddlines ; ++k ){ */
+/* 	    *qtmpR += ( *acpyR * *atmpR + *acpyI * *atmpI ) / *vcpy; */
+/* 	    *qtmpI += ( *acpyR * *atmpI - *acpyI * *atmpR ) / *vcpy; */
+/* 	    ++atmpR; */
+/* 	    ++atmpI; */
+/* 	    ++qtmpR; */
+/* 	    ++qtmpI; */
+/* 	    *i_success += 10; */
+/* 	  } */
+/* 	  // the lines have been added, set naddlines to 0 */
+/* 	  naddlines = 0; */
+/* 	} */
+
+
+	// THE FASTER VERSION WITH CONSTANT BLOCK SIZE (8).
+
+	
         // Go through all columns in the upper triangular part
 	// Check in blocks of 8 and skip those that contain only zeros.
         for( j = 0 ; j < ( n - i ) ; j+=8 ){
-	  
+
+	  // check if there are any non-zero data in the next 8 elements
+	  // naddlines is needed to avoid overflow at end of the vector
 	  addlines = 0;
 	  naddlines = 0;
 	  for ( k = 0 ; ( k < 8 ) & ((k+j) < ( n - i )) ; ++k ){
@@ -101,21 +158,19 @@ SEXP fishs_add2( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 	    ++itmp;
 	    ++naddlines;
 	  }
-	  
+
+	  // if there is something to add
 	  if (addlines){
+	    // add the information to real and imaginary parts of matrix Q
 #pragma GCC ivdep
 	    for (k = 0 ; k<naddlines ; ++k ){
+
 	      // Add information
-	      
-	      //if( *itmp ){
 	      *qtmpR += ( *acpyR * *atmpR + *acpyI * *atmpI ) / *vcpy;
 	      *qtmpI += ( *acpyR * *atmpI - *acpyI * *atmpR ) / *vcpy;
-	      /* *qtmpR += ( *acpyR * *atmpR + *acpyI * *atmpI ) / *vcpy; */
-	      /* *qtmpI += ( *acpyR * *atmpI - *acpyI * *atmpR ) / *vcpy; */
 	      
 	      // Use the return value as a flop counter for testing. Will overflow in many cases...
 	      *i_success += 10;
-	      //}
 	      
 	      
 	      // Increment the second theory matrix counter
@@ -127,6 +182,7 @@ SEXP fishs_add2( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 	      ++qtmpI;
 	    }
 	  }else{
+	    // move forward if only zeros were found
 	    atmpR += naddlines;
 	    atmpI += naddlines;
 	    qtmpR += naddlines;
@@ -134,7 +190,7 @@ SEXP fishs_add2( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 	  }
 	  
         }
-	
+
 	
         // Add the corresponding measurement to the y-vector
 	*ytmpR += ( *mcpyR * *acpyR + *mcpyI * *acpyI ) / *vcpy;
