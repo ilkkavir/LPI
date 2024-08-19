@@ -18,7 +18,7 @@
 ##    the global workspace.
 ## 
 
-initLPIenv2 <- function( LPIenv.name )
+initLPIenvR <- function( LPIenv.name )
   {
 
     # Get the LPI environment (transferred as a list,
@@ -57,6 +57,9 @@ initLPIenv2 <- function( LPIenv.name )
     # Buffer row counter
     assign( 'nrows', as.integer(0)                                                              , LPIenv )
 
+    ## this version uses separate double arrays for Re and Im
+    assign( 'Rcomplex' , FALSE , LPIenv )
+      
     ## make sure that the values are stored in correct format
     storage.mode( LPIenv$camb ) <- 'complex'
     storage.mode( LPIenv$iamb ) <- 'logical'

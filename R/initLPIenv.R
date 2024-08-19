@@ -57,6 +57,9 @@ initLPIenv <- function( LPIenv.name )
     # Buffer row counter
     assign( 'nrows', as.integer(0)                                                              , LPIenv )
 
+    ## this version uses Rcomplex variables
+    assign( 'Rcomplex' , TRUE , LPIenv)
+      
     ## make sure that the values are stored in correct format
     storage.mode( LPIenv$camb ) <- 'complex'
     storage.mode( LPIenv$iamb ) <- 'logical'

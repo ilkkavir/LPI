@@ -99,8 +99,11 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     LPIdatalist.final <<- prepareLPIdata( LPIparam , LPIdatalist.raw )
                     
                     ## add some missing vectors and convert into an environment in the global workspace
-                    initLPIenv2(substitute(LPIdatalist.final))
-                    
+                    if(LPIparam[["Rcomplex"]]){
+                        initLPIenv(substitute(LPIdatalist.final))
+                    }else{
+                        initLPIenvR(substitute(LPIdatalist.final))
+                    }                    
                     
                     ## Number of lags, each full lag
                     ## will get its own call of LPIsolve

@@ -37,7 +37,7 @@
  */
 
 
-SEXP theory_rows2( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP rvar , SEXP ndata , SEXP ncur , SEXP nend , SEXP rlims , SEXP nranges , SEXP arowsR , SEXP arowsI , SEXP irows , SEXP mvecR , SEXP mvecI , SEXP mvar , SEXP nrows , SEXP background , SEXP remoterx )
+SEXP theory_rows_r( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP rvar , SEXP ndata , SEXP ncur , SEXP nend , SEXP rlims , SEXP nranges , SEXP arowsR , SEXP arowsI , SEXP irows , SEXP mvecR , SEXP mvecI , SEXP mvar , SEXP nrows , SEXP background , SEXP remoterx )
 {
   const Rcomplex * restrict amb = COMPLEX(camb);
   const int * restrict amb_i = LOGICAL(iamb);

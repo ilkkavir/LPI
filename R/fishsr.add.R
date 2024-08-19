@@ -20,11 +20,11 @@
 ##  success TRUE if the rows were successfully added.
 ##
 
-fishs.add2 <- function( e , A.Rdata , A.Idata , I.data ,  M.Rdata , M.Idata ,  E.data , nrow )
+fishsr.add <- function( e , A.Rdata , A.Idata , I.data ,  M.Rdata , M.Idata ,  E.data , nrow )
 {
 
 
     # Call the c function
-    return( .Call( "fishs_add2" , e[["QvecR"]] , e[["QvecI"]] , e[["yR"]] , e[["yI"]] , A.Rdata , A.Idata , I.data , M.Rdata , M.Idata , E.data , e[["ncol"]] , nrow ))
+    return( .Call( "fishsr_add" , e[["QvecR"]] , e[["QvecI"]] , e[["yR"]] , e[["yI"]] , A.Rdata , A.Idata , I.data , M.Rdata , M.Idata , E.data , e[["ncol"]] , nrow ))
 
   }

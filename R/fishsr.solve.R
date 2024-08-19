@@ -19,7 +19,7 @@
 ##  the solver environment
 ##
 
-fishs.solve2 <- function( e , full.covariance = TRUE , ... )
+fishsr.solve <- function( e , full.covariance = TRUE , ... )
   {
 
     # Allocate a matrix for the full

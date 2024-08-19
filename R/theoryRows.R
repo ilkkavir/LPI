@@ -25,25 +25,52 @@
 theoryRows <- function( LPIenv , lag )
   {
 
-    # Call the C routine
-    return( .Call( "theory_rows" ,
-                  LPIenv[['camb']] ,
-                  LPIenv[['iamb']] ,
-                  LPIenv[['cprod']],
-                  LPIenv[['iprod']],
-                  LPIenv[['var']] ,
-                  LPIenv[['nData']] ,
-                  LPIenv[['nCur']] ,
-                  as.integer(LPIenv[['nCur']]+LPIenv[['nBuf']]) ,
-                  LPIenv[['rangeLimits']] ,
-                  LPIenv[['nGates']][lag] ,
-                  LPIenv[['arows']] ,
-                  LPIenv[['irows']] ,
-                  LPIenv[['meas']] ,
-                  LPIenv[['mvar']],
-                  LPIenv[['nrows']],
-                  LPIenv[["backgroundEstimate"]],
-                  LPIenv[["remoteRX"]]
-                  )
-           )
+      ## Call the C routine
+      if(LPIenv[["Rcomplex"]]){
+          return( .Call( "theory_rows" ,
+                        LPIenv[['camb']] ,
+                        LPIenv[['iamb']] ,
+                        LPIenv[['cprod']],
+                        LPIenv[['iprod']],
+                        LPIenv[['var']] ,
+                        LPIenv[['nData']] ,
+                        LPIenv[['nCur']] ,
+                        as.integer(LPIenv[['nCur']]+LPIenv[['nBuf']]) ,
+                        LPIenv[['rangeLimits']] ,
+                        LPIenv[['nGates']][lag] ,
+                        LPIenv[['arows']] ,
+                        LPIenv[['irows']] ,
+                        LPIenv[['meas']] ,
+                        LPIenv[['mvar']],
+                        LPIenv[['nrows']],
+                        LPIenv[["backgroundEstimate"]],
+                        LPIenv[["remoteRX"]]
+                        )
+                 )
+      }else{
+          return( .Call( "theory_rows_r" ,
+                        LPIenv[['camb']] ,
+                        LPIenv[['iamb']] ,
+                        LPIenv[['cprod']],
+                        LPIenv[['iprod']],
+                        LPIenv[['var']] ,
+                        LPIenv[['nData']] ,
+                        LPIenv[['nCur']] ,
+                        as.integer(LPIenv[['nCur']]+LPIenv[['nBuf']]) ,
+                        LPIenv[['rangeLimits']] ,
+                        LPIenv[['nGates']][lag] ,
+                        LPIenv[['arowsR']] ,
+                        LPIenv[['arowsI']] ,
+                        LPIenv[['irows']] ,
+                        LPIenv[['measR']] ,
+                        LPIenv[['measI']] ,
+                        LPIenv[['mvar']],
+                        LPIenv[['nrows']],
+                        LPIenv[["backgroundEstimate"]],
+                        LPIenv[["remoteRX"]]
+                        )
+                 )
+          
+      }
+      
   }

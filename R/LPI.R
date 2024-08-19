@@ -125,7 +125,13 @@ LPI <- function(dataInputFunction,
     }
 
 
-
+    ## check if Rcomplex or separate arrays of Re and Im data should be used
+    if(LPIparam[["solver"]] == "fishsv"){
+        LPIparam[["Rcomplex"]] <- FALSE
+    }else{
+        LPIparam[["Rcomplex"]] <- TRUE
+    }
+        
       
 
     ## number of slave processes (one core is automatically saved for the master process)

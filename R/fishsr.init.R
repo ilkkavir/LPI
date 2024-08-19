@@ -15,7 +15,7 @@
 ##  s     A fishs solver environment
 ##
 
-fishs.init2 <- function( ncols , ... )
+fishsr.init <- function( ncols , ... )
   {
     # New environment for the solver
     s <- new.env()
