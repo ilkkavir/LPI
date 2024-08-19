@@ -24,7 +24,7 @@
 
 */
 
-SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const SEXP arowsI , const SEXP irows , const SEXP measR , const SEXP measI  , const SEXP var  , const SEXP nx   , const SEXP nrow  )               
+SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const SEXP arowsI , const SEXP irows , const SEXP measR , const SEXP measI  , const SEXP var  , const SEXP nx   , const SEXP nrow , SEXP flops )               
 {
   double *qR = REAL(QvecR);
   double *qI = REAL(QvecI);
@@ -53,13 +53,17 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 
   int nr = *INTEGER(nrow);
 
+  double *flop_count = REAL(flops);
+  
+
   int i = 0;
   int j = 0;
   int l = 0;
   int k = 0;
   int addlines = 0;
   int naddlines  = 0;
-
+  long int n_adds = 0;
+  
   SEXP success;
   int * restrict i_success;
 
@@ -69,7 +73,7 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
   // local pointer to the success output
   i_success = LOGICAL( success );
 
-  // set the success output
+  // set the success output (will always be 1 at the moment..)
   *i_success = 1;
 
   // Go through all theory matrix rows
@@ -110,8 +114,8 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 /* 		++atmpI; */
 /* 		++qtmpR; */
 /* 		++qtmpI; */
-/* 		*i_success += 10; */
 /* 	      } */
+/*	n_adds += naddlines; */
 /* 	      // the lines have been added, set naddlines to 0 */
 /* 	      naddlines = 0; */
 /* 	      // just increment the counters when zero-data are found.  */
@@ -135,8 +139,8 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 /* 	    ++atmpI; */
 /* 	    ++qtmpR; */
 /* 	    ++qtmpI; */
-/* 	    *i_success += 10; */
 /* 	  } */
+/*	n_adds += naddlines; */
 /* 	  // the lines have been added, set naddlines to 0 */
 /* 	  naddlines = 0; */
 /* 	} */
@@ -169,9 +173,6 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 	      *qtmpR += ( *acpyR * *atmpR + *acpyI * *atmpI ) / *vcpy;
 	      *qtmpI += ( *acpyR * *atmpI - *acpyI * *atmpR ) / *vcpy;
 	      
-	      // Use the return value as a flop counter for testing. Will overflow in many cases...
-	      *i_success += 10;
-	      
 	      
 	      // Increment the second theory matrix counter
 	      ++atmpR;
@@ -181,6 +182,9 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 	      ++qtmpR;
 	      ++qtmpI;
 	    }
+	    // count added theory matrix elements
+	    n_adds += naddlines;
+	    
 	  }else{
 	    // move forward if only zeros were found
 	    atmpR += naddlines;
@@ -196,9 +200,9 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 	*ytmpR += ( *mcpyR * *acpyR + *mcpyI * *acpyI ) / *vcpy;
         *ytmpI += ( *mcpyI * *acpyR - *mcpyR * *acpyI ) / *vcpy;
 	
-        // Use the return value as a flop counter for testing. Will overflow in many cases...
-        *i_success += 10;
-        
+        // adding to y requires equally meny flops as adding to Q, so use the same counter
+	n_adds++;
+	
         // Increment the y-vector counter
         ++ytmpR;
         ++ytmpI;
@@ -225,6 +229,9 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 
   }
 
+  // total number of floating point operations.
+  *flop_count += 10.*((double)(n_adds));
+  
   UNPROTECT(1);
 
   return(success);

@@ -44,6 +44,9 @@ fishsr.init <- function( ncols , ... )
       storage.mode(s$yR) <- 'double'
       storage.mode(s$yI) <- 'double'
 
+
+      assign( 'FLOPS' , 0 , s )
+      storage.mode(s$FLOPS) <- 'double'
       
     return(s)
 

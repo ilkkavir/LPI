@@ -42,7 +42,7 @@ SEXP theory_rows_r( SEXP camb , SEXP iamb , SEXP cprod , SEXP iprod , SEXP rvar 
 
 // Inverse problem solvers
 SEXP fishs_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
-SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const SEXP arowsI , const SEXP irows , const SEXP measR , const SEXP measI , const SEXP var , const SEXP nx , const SEXP nrow );
+SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const SEXP arowsI , const SEXP irows , const SEXP measR , const SEXP measI , const SEXP var , const SEXP nx , const SEXP nrow , SEXP flops);
 SEXP deco_add( SEXP Qvec , SEXP yvec , const SEXP arows , const SEXP irows , const SEXP meas , const SEXP var , const SEXP nx , const SEXP nrow );
 SEXP dummy_add( SEXP msum , SEXP vsum , SEXP rmin , SEXP rmax , SEXP mdata , SEXP mambig , SEXP iamb , SEXP iprod , SEXP edata , SEXP ndata );
 

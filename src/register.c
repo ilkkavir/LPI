@@ -14,7 +14,7 @@ static const R_CallMethodDef callMethods[22] = {
   { "lagged_products"       , (DL_FUNC) & lagged_products       , 9 } ,
   { "lagged_products_r"     , (DL_FUNC) & lagged_products_r     , 6 } ,
   { "fishs_add"             , (DL_FUNC) & fishs_add             , 8 } ,
-  { "fishsr_add"            , (DL_FUNC) & fishsr_add            , 12 } ,
+  { "fishsr_add"            , (DL_FUNC) & fishsr_add            , 13 } ,
   { "theory_rows_alloc"     , (DL_FUNC) & theory_rows_alloc     , 13} ,
   { "theory_rows"           , (DL_FUNC) & theory_rows           , 17} ,
   { "theory_rows_r"         , (DL_FUNC) & theory_rows_r         , 19} ,

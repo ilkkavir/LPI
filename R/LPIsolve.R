@@ -65,6 +65,9 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     
     ## Copy of LPIenv[["nData"]]
     ndcpy <- LPIenv[["nData"]]
+
+    ## theory row counter
+    NROWS <- 0
     
     ## Walk through all fractional time-lags
     for( l in seq( LPIenv[["lagLimits"]][lag] , ( LPIenv[["lagLimits"]][lag+1] - 1 ) )){
@@ -126,8 +129,6 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
             
             ## Produce theory matrix rows in
             ## (small) sets and add them to the solver
-            FLOPS <- 0
-            NROWS <- 0
             addtime <- system.time({
             while( newrows <- theoryRows( LPIenv , lag ) ){
                 NROWS <- NROWS + LPIenv[["nrows"]]
@@ -145,25 +146,25 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
                         
                     }else if(LPIenv$solver=='fishs'){
                         
-                        FLOPS <- FLOPS + as.double(fishs.add( e = solver.env ,
+                        fishs.add( e = solver.env ,
                                   A.data = LPIenv[["arows"]] ,
                                   I.data = LPIenv[["irows"]] ,
                                   M.data = LPIenv[["meas"]] ,
                                   E.data = LPIenv[["mvar"]] ,
                                   nrow = LPIenv[['nrows']]
-                                  ))
+                                  )
                         
                     }else if(LPIenv$solver=='fishsr'){
-
-                        FLOPS <- FLOPS + as.double(fishsr.add( e = solver.env ,
-                                  A.Rdata = LPIenv[["arowsR"]],
-                                  A.Idata = LPIenv[["arowsI"]] ,
-                                  I.data = LPIenv[["irows"]] ,
-                                  M.Rdata = LPIenv[["measR"]] ,
-                                  M.Idata = LPIenv[["measI"]] ,
-                                  E.data = LPIenv[["mvar"]],
-                                  nrow = LPIenv[["nrows"]]
-                                  ))
+                        
+                        fishsr.add( e = solver.env ,
+                                   A.Rdata = LPIenv[["arowsR"]],
+                                   A.Idata = LPIenv[["arowsI"]] ,
+                                   I.data = LPIenv[["irows"]] ,
+                                   M.Rdata = LPIenv[["measR"]] ,
+                                   M.Idata = LPIenv[["measI"]] ,
+                                   E.data = LPIenv[["mvar"]],
+                                   nrow = LPIenv[["nrows"]]
+                                   )
                         
                     }else if(LPIenv[["solver"]] == "deco" ){
                         
@@ -209,7 +210,7 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     assign( "lagprof" , solver.env[["solution"]] , lagprof )
     assign( "covariance" , solver.env[["covariance"]] , lagprof )
     assign( "lagnum" , lag , lagprof )
-    assign( "FLOPS" , FLOPS , lagprof )
+    assign( "FLOPS" , solver.env[['FLOPS']] , lagprof )
     assign( "addtime" , addtime , lagprof)
     assign( "NROWS" , NROWS , lagprof )
     
