@@ -139,11 +139,14 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
 
                     ## sum of the flop counters
                     FLOP <- 0
+                    ## time used for adding the theory lines to the solver
+                    addTime <- 0
                     ## Collect the lag numbers from ACF list
                     lagnums <- x
                     for(k in 1:nlags ){
                         lagnums[k] <- ACFlist[[k]][['lagnum']]
                         FLOP <- FLOP + ACFlist[[k]][["FLOPS"]]
+                        addTime <- addTime + ACFlist[[k]][["addtime"]]
                     }
                     
                     ## Find correct order for the lag profiles
@@ -208,6 +211,7 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     ACFreturn[["nGates"]]     <- ngates
                     ACFreturn[["FLOP"]] <- FLOP
                     ACFreturn[["analysisTime"]] <- analysisTime
+                    ACFreturn[["addTime"]] <- addTime
                     
                     ## Store the results
                     eval( as.name( LPIparam[["resultSaveFunction"]]) )( LPIparam , intPeriod , ACFreturn )
