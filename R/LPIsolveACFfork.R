@@ -157,6 +157,9 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     
                     ## Make ACF and variance matrices
                     ACFmat <- matrix(NA,ncol=nlags,nrow=(maxgates+1))
+
+                    lagFLOP <- rep(NA,nlags)
+                    lagAddTime <- list()
                     
                     ## Collect the lag profiles to the ACF matrix
                     for( k in 1:nlags){
@@ -165,6 +168,8 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                             ACFmat[1:ngates[k],k] <- ACFlist[[k]][['lagprof']][1:ngates[k]]
                             ## Copy the background ACF estimate
                             ACFmat[maxgates+1,k]  <- ACFlist[[k]][['lagprof']][ngates[k]+1]
+                            lagFLOP[k] <- ACFlist[[k]][["FLOPS"]]
+                            lagAddTime[[k]] <- ACFlist[[k]][["addtime"]]
                         }
                     }
                     
@@ -212,6 +217,8 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     ACFreturn[["FLOP"]] <- FLOP
                     ACFreturn[["analysisTime"]] <- analysisTime
                     ACFreturn[["addTime"]] <- addTime
+                    ACFreturn[["lagFLOP"]] <- lagFLOP
+                    ACFreturn[["lagAddTime"]] <- lagAddTime
                     
                     ## Store the results
                     eval( as.name( LPIparam[["resultSaveFunction"]]) )( LPIparam , intPeriod , ACFreturn )

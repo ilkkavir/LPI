@@ -210,9 +210,15 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     assign( "lagprof" , solver.env[["solution"]] , lagprof )
     assign( "covariance" , solver.env[["covariance"]] , lagprof )
     assign( "lagnum" , lag , lagprof )
-    assign( "FLOPS" , solver.env[['FLOPS']] , lagprof )
-    assign( "addtime" , addtime , lagprof)
-    assign( "NROWS" , NROWS , lagprof )
+    if(LPIenv[["solver"]]=='fishsr'){
+        assign( "FLOPS" , solver.env[['FLOPS']] , lagprof )
+        assign( "addtime" , addtime , lagprof)
+        assign( "NROWS" , NROWS , lagprof )
+    }else{
+        assign( "FLOPS" , NaN , lagprof )
+        assign( "addtime" , NaN , lagprof)
+        assign( "NROWS" , NaN , lagprof )        
+    }
     
     ## Kill the solver object
     if(LPIenv$solver=="rlips") rlips.dispose(solver.env)

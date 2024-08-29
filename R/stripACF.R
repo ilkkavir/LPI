@@ -64,6 +64,8 @@ stripACF <- function( ACFlist , rgates , lags , fullCovar=FALSE)
       ACFlist2[["analysisTime"]] <- ACFlist[["analysisTime"]]
       ACFlist2[["FLOP"]] <- ACFlist[["FLOP"]]
       ACFlist2[["addTime"]] <- ACFlist[["addTime"]]
+      ACFlist2[["lagFLOP"]] <- ACFlist[["lagFLOP"]]
+      ACFlist2[["lagAddTime"]] <- ACFlist[["lagAddTime"]]
 
     return(ACFlist2)
 
