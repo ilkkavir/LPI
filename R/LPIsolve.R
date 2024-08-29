@@ -57,6 +57,8 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
         solver.env <- fishsr.init( LPIenv[["nGates"]][lag] + 1 )
     }else if ( LPIenv[["solver"]]=="deco" ){
         solver.env <- deco.init( LPIenv[["nGates"]][lag] + 1 )
+    }else if ( LPIenv$solver=="decor" ){
+        solver.env <- decor.init( LPIenv[["nGates"]][lag] + 1 )
     }else if ( LPIenv[["solver"]]=="dummy" ){
         solver.env <- dummy.init( range( LPIenv[["rangeLimits"]][ 1 : (LPIenv[["nGates"]][lag]+1) ]) )
     }else if ( LPIenv[["solver"]]=="ffts" ){
@@ -126,7 +128,6 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
             
             ## Other solvers need theory matrix rows
         }else{
-            
             ## Produce theory matrix rows in
             ## (small) sets and add them to the solver
             addtime <- system.time({
@@ -175,6 +176,18 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
                                  E.data = LPIenv[["mvar"]][1:LPIenv[["nrows"]]]
                                  )
                         
+                    }else if(LPIenv$solver=='decor'){
+                        
+                        decor.add( e = solver.env ,
+                                   A.Rdata = LPIenv[["arowsR"]],
+                                   A.Idata = LPIenv[["arowsI"]] ,
+                                   I.data = LPIenv[["irows"]] ,
+                                   M.Rdata = LPIenv[["measR"]] ,
+                                   M.Idata = LPIenv[["measI"]] ,
+                                   E.data = LPIenv[["mvar"]],
+                                   nrow = LPIenv[["nrows"]]
+                                   )
+                        
                     }
                 }
             }
@@ -197,6 +210,8 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
         fishsr.solve( e = solver.env , full.covariance = LPIenv[["fullCovar"]] )
     }else if(LPIenv[["solver"]]=="deco"){
         deco.solve( e = solver.env )
+    }else if(LPIenv$solver=="decor"){
+        decor.solve( e = solver.env )
     }else if(LPIenv[["solver"]]=="dummy"){
         dummy.solve( e = solver.env , LPIenv[["rangeLimits"]][1:(LPIenv[["nGates"]][lag]+1)])
     }else if( LPIenv[["solver"]]=="ffts"){
@@ -210,14 +225,12 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     assign( "lagprof" , solver.env[["solution"]] , lagprof )
     assign( "covariance" , solver.env[["covariance"]] , lagprof )
     assign( "lagnum" , lag , lagprof )
-    if(LPIenv[["solver"]]=='fishsr'){
+    assign( "addtime" , addtime , lagprof)
+    assign( "NROWS" , NROWS , lagprof )
+    if( any( LPIenv[["solver"]]==c('fishsr','decor'))){
         assign( "FLOPS" , solver.env[['FLOPS']] , lagprof )
-        assign( "addtime" , addtime , lagprof)
-        assign( "NROWS" , NROWS , lagprof )
     }else{
         assign( "FLOPS" , NaN , lagprof )
-        assign( "addtime" , NaN , lagprof)
-        assign( "NROWS" , NaN , lagprof )        
     }
     
     ## Kill the solver object

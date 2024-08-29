@@ -126,7 +126,7 @@ LPI <- function(dataInputFunction,
 
 
     ## check if Rcomplex or separate arrays of Re and Im data should be used
-    if(LPIparam[["solver"]] == "fishsr"){
+    if( any( LPIparam[["solver"]] == c("fishsr","decor") ) ){
         LPIparam[["Rcomplex"]] <- FALSE
     }else{
         LPIparam[["Rcomplex"]] <- TRUE

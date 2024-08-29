@@ -135,7 +135,7 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     ##ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , mc.cores=ncl )
                     analysisTime <- system.time({
                         ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , intPeriod=intPeriod, mc.cores=ncl )
-                        })
+                    })
 
                     ## sum of the flop counters
                     FLOP <- 0
@@ -224,7 +224,7 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                     eval( as.name( LPIparam[["resultSaveFunction"]]) )( LPIparam , intPeriod , ACFreturn )
 
 ##                    Rprof(NULL)
-
+                    
             
                 }
             }

@@ -6,7 +6,7 @@
 // R registration of C functions
 
 #include "LPI.h"
-static const R_CallMethodDef callMethods[22] = {
+static const R_CallMethodDef callMethods[23] = {
   { "read_gdf_data_R"       , (DL_FUNC) & read_gdf_data_R       , 6 } , 
   { "mix_frequency_R"       , (DL_FUNC) & mix_frequency_R       , 3 } , 
   { "index_adjust_R"        , (DL_FUNC) & index_adjust_R        , 3 } , 
@@ -21,6 +21,7 @@ static const R_CallMethodDef callMethods[22] = {
   { "prepare_data"          , (DL_FUNC) & prepare_data          , 10} ,
   { "average_power"         , (DL_FUNC) & average_power         , 6 } ,
   { "deco_add"              , (DL_FUNC) & deco_add              , 8 } ,
+  { "decor_add"             , (DL_FUNC) & decor_add             , 12 } ,
   { "average_profile"       , (DL_FUNC) & average_profile       , 4 } ,
   { "dummy_add"             , (DL_FUNC) & dummy_add             , 10} ,
   { "resample"              , (DL_FUNC) & resample              , 8 } ,
