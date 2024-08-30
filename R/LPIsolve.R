@@ -108,23 +108,26 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
         ## directly with the product vectors
         if( LPIenv[["solver"]]=="dummy" ){
             
-            dummy.add( e      = solver.env        ,
-                      M.data  = LPIenv[["cprod"]] ,
-                      M.ambig = LPIenv[["camb"]]  ,
-                      I.ambig = LPIenv[["iamb"]]  ,
-                      I.prod  = LPIenv[["iprod"]] ,
-                      E.data  = LPIenv[["var"]] , nData = as.integer( LPIenv[["nData"]] - l ) )
-            
+            addtime <- system.time({
+                dummy.add( e      = solver.env        ,
+                          M.data  = LPIenv[["cprod"]] ,
+                          M.ambig = LPIenv[["camb"]]  ,
+                          I.ambig = LPIenv[["iamb"]]  ,
+                          I.prod  = LPIenv[["iprod"]] ,
+                          E.data  = LPIenv[["var"]] , nData = as.integer( LPIenv[["nData"]] - l ) )
+            })
+                
         }else if( LPIenv[["solver"]]=="ffts"){
-            
-            ffts.add( e       = solver.env        ,
-                     M.data  = LPIenv[["cprod"]] ,
-                     M.ambig = LPIenv[["camb"]]  ,
-                     I.ambig = LPIenv[["iamb"]]  ,
-                     I.prod  = LPIenv[["iprod"]] ,
-                     E.data  = LPIenv[["var"]]   ,
-                     nData   = as.integer(LPIenv[["nData"]] - l)
-                     )
+            addtime <- system.time({
+                ffts.add( e       = solver.env        ,
+                         M.data  = LPIenv[["cprod"]] ,
+                         M.ambig = LPIenv[["camb"]]  ,
+                         I.ambig = LPIenv[["iamb"]]  ,
+                         I.prod  = LPIenv[["iprod"]] ,
+                         E.data  = LPIenv[["var"]]   ,
+                         nData   = as.integer(LPIenv[["nData"]] - l)
+                         )
+            }) 
             
             ## Other solvers need theory matrix rows
         }else{
