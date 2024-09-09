@@ -187,18 +187,32 @@ prepareLPIdata <- function( LPIparam , LPIdatalist.raw )
         nd <- LPIdatalist.final[["nData"]]
 
 
-        LPIdatalist.final[["RX1"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["RX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
+        ## LPIdatalist.final[["RX1"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["RX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
 
-        LPIdatalist.final[["TX1"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
+        ## LPIdatalist.final[["TX1"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
 
-        LPIdatalist.final[["RX2"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["RX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
+        ## LPIdatalist.final[["RX2"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["RX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
 
-        LPIdatalist.final[["TX2"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
+        ## LPIdatalist.final[["TX2"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
 
+        tmplist <- decoFilter2( LPIdatalist.final[["TX1"]][["cdata"]] , LPIdatalist.final[["TX1"]][["idata"]] , LPIdatalist.final[["RX1"]][["cdata"]] , LPIdatalist.final[["RX1"]][["idata"]], nd , LPIparam[['decodingFilter']][1] )
+        LPIdatalist.final[['TX1']][['cdata']] <- tmplist[['cdataT']]
+        LPIdatalist.final[['TX1']][['idata']] <- tmplist[['idataT']]
+        LPIdatalist.final[['RX1']][['cdata']] <- tmplist[['cdataR']]
+        LPIdatalist.final[['RX1']][['idata']] <- tmplist[['idataR']]
+        
+            
+        tmplist <- decoFilter2( LPIdatalist.final[["TX2"]][["cdata"]] , LPIdatalist.final[["TX2"]][["idata"]] , LPIdatalist.final[["RX2"]][["cdata"]] , LPIdatalist.final[["RX2"]][["idata"]] , nd , LPIparam[['decodingFilter']][1] )
+        LPIdatalist.final[['TX2']][['cdata']] <- tmplist[['cdataT']]
+        LPIdatalist.final[['TX2']][['idata']] <- tmplist[['idataT']]
+        LPIdatalist.final[['RX2']][['cdata']] <- tmplist[['cdataR']]
+        LPIdatalist.final[['RX2']][['idata']] <- tmplist[['idataR']]
+
+        
     }else if( is.character( LPIparam[["decodingFilter"]] )){
-
+        
         if( any( LPIparam[["decodingFilter"]][1] == c("matched","inverse") ) ){
-
+            
             LPIdatalist.final[["RX1"]][["cdata"]][!LPIdatalist.final[["RX1"]][["idata"]]] <- 0+0i
             LPIdatalist.final[["RX2"]][["cdata"]][!LPIdatalist.final[["RX2"]][["idata"]]] <- 0+0i
             LPIdatalist.final[["TX1"]][["cdata"]][!LPIdatalist.final[["TX1"]][["idata"]]] <- 0+0i
@@ -207,17 +221,39 @@ prepareLPIdata <- function( LPIparam , LPIdatalist.raw )
             nd <- LPIdatalist.final[["nData"]]
 
 
-            LPIdatalist.final[["RX1"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["RX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
+            tmplist <- decoFilter2( LPIdatalist.final[["TX1"]][["cdata"]] , LPIdatalist.final[["TX1"]][["idata"]] , LPIdatalist.final[["RX1"]][["cdata"]] , LPIdatalist.final[["RX1"]][["idata"]] , nd , LPIparam[['decodingFilter']][1] )
+            LPIdatalist.final[['TX1']][['cdata']] <- tmplist[['cdataT']]
+            LPIdatalist.final[['TX1']][['idata']] <- tmplist[['idataT']]
+            LPIdatalist.final[['RX1']][['cdata']] <- tmplist[['cdataR']]
+            LPIdatalist.final[['RX1']][['idata']] <- tmplist[['idataR']]
 
-            LPIdatalist.final[["TX1"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
+            
+            tmplist <- decoFilter2( LPIdatalist.final[["TX2"]][["cdata"]] , LPIdatalist.final[["TX2"]][["idata"]] , LPIdatalist.final[["RX2"]][["cdata"]] , LPIdatalist.final[["RX2"]][["idata"]] , nd , LPIparam[['decodingFilter']][1] )
+            LPIdatalist.final[['TX2']][['cdata']] <- tmplist[['cdataT']]
+            LPIdatalist.final[['TX2']][['idata']] <- tmplist[['idataT']]
+            LPIdatalist.final[['RX2']][['cdata']] <- tmplist[['cdataR']]
+            LPIdatalist.final[['RX2']][['idata']] <- tmplist[['idataR']]
 
-            LPIdatalist.final[["RX2"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["RX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
 
-            LPIdatalist.final[["TX2"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
+            ## LPIdatalist.final[["RX1"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["RX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
 
-            LPIdatalist.final[["TX1"]][["idata"]] <- LPI:::decoFilter.idata( LPIdatalist.final[["TX1"]][["idata"]][1:nd] )
+            ## LPIdatalist.final[["TX1"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["cdata"]][1:nd] , LPIdatalist.final[["TX1"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
 
-            LPIdatalist.final[["TX2"]][["idata"]] <- LPI:::decoFilter.idata( LPIdatalist.final[["TX2"]][["idata"]][1:nd] )
+            ## LPIdatalist.final[["RX2"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["RX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
+
+            ## LPIdatalist.final[["TX2"]][["cdata"]] <- LPI:::decoFilter.cdata( LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["cdata"]][1:nd] , LPIdatalist.final[["TX2"]][["idata"]][1:nd] , LPIparam[["decodingFilter"]][1] )
+
+            ## ## ## test
+            ## ## itx1 <- LPIdatalist.final[["TX1"]][["idata"]][1:nd]
+            ## ## itx2 <- LPIdatalist.final[["TX2"]][["idata"]][1:nd]
+            ## ## ##
+            ## LPIdatalist.final[["TX1"]][["idata"]] <- LPI:::decoFilter.idata( LPIdatalist.final[["TX1"]][["idata"]][1:nd] )
+
+            ## LPIdatalist.final[["TX2"]][["idata"]] <- LPI:::decoFilter.idata( LPIdatalist.final[["TX2"]][["idata"]][1:nd] )
+            ## ## ## test
+            ## ## LPIdatalist.final[["RX1"]][["idata"]][itx1 != LPIdatalist.final[["TX1"]][["idata"]]] <- TRUE
+            ## ## LPIdatalist.final[["RX2"]][["idata"]][itx2 != LPIdatalist.final[["TX2"]][["idata"]]] <- TRUE
+            ## ## ##
         }
     }
 
