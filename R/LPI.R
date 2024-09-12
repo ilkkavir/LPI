@@ -134,11 +134,11 @@ LPI <- function(dataInputFunction,
         
       
 
-    ## number of slave processes (one core is automatically saved for the master process)
+    ## number of slave processes (one is automatically saved for the master process, we will use also that with help of future)
     if(is.null(cl)){
         Ncl <- 1
     }else{
-        Ncl <- length(cl)
+        Ncl <- length(cl) + 1
     }
     LPIparam[["Ncluster"]] <- Ncl
 
@@ -149,12 +149,21 @@ LPI <- function(dataInputFunction,
     ## # find a reasonable number of parallel integration periods (Niper <= Ncl & Niper*Nlags >= Ncl)
     ## Nlags <- length(LPIparam[["lagLimits"]]) - 1
 
-    ## let the cluster nodes do the work
-    if (is.null(cl)){
+    ## let the cluster nodes do the work, except if this is not a cluster
+    if (Ncl==1){
         print( unlist( LPIsolveACFfork( 1 , LPIparam  ) ) )
     }else{
-        print(unlist(snow::clusterApply( cl , seq(Ncl) , fun=LPIsolveACFfork , LPIparam )))
+        ## start analysis in the current MPI node using future
+        future::plan(multicore)
+        ## set number of cores explicitly, since availableCores() will give an incorrect value when called within the future call
+        LPIparam$nCores <- parallelly::availableCores()
+        futureOut <- future(LPIsolveACFfork( 1 , LPIparam  ) )
+        ## start analysis in the other MPI nodes using clusterApply
+        print(unlist(snow::clusterApply( cl , seq(2,Ncl) , fun=LPIsolveACFfork , LPIparam )))
+        ## make sure that the analysis in the current MPI task is also finished
+        value(futureOut)
     }
+    
 
     ## this loop is now in LPIsolveACFfork
     
