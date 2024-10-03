@@ -140,30 +140,54 @@ LPI <- function(dataInputFunction,
     }else{
         Ncl <- length(cl) + 1
     }
+    
+
+    ## set number of cores explicitly, since availableCores() will give an incorrect value when called within the future call
+    LPIparam$nCores <- parallelly::availableCores()
+
+    ## we cannot use the future trick with single core, set Ncl accordingly
+    if(LPIparam$nCores==1){
+        Ncl <- Ncl - 1
+    }
+
+    ## Ncl is assumed to be positive
+    Ncl <- max(Ncl,1)
+
     LPIparam[["Ncluster"]] <- Ncl
 
     if(!is.na(LPIparam$resultDir)){
-        save(LPIparam=LPIparam,file=file.path(resultDir,'LPIparam.Rdata'))
+        save(LPIparam,file=file.path(resultDir,'LPIparam.Rdata'))
     }
     
     ## # find a reasonable number of parallel integration periods (Niper <= Ncl & Niper*Nlags >= Ncl)
     ## Nlags <- length(LPIparam[["lagLimits"]]) - 1
 
     ## let the cluster nodes do the work, except if this is not a cluster
-    if (Ncl==1){
+    if (Ncl<=1){
+##        print('Single core, LPIsolveACFfork')
         print( unlist( LPIsolveACFfork( 1 , LPIparam  ) ) )
+##        print('Single core, LPIsolveACFfork, done')
     }else{
         ## start analysis in the current MPI node using future
+        ## but this works only if there are two or more cores available.
         future::plan(multicore)
-        ## set number of cores explicitly, since availableCores() will give an incorrect value when called within the future call
-        LPIparam$nCores <- parallelly::availableCores()
-        futureOut <- future(LPIsolveACFfork( 1 , LPIparam  ) )
-        ## start analysis in the other MPI nodes using clusterApply
-        print(unlist(snow::clusterApply( cl , seq(2,Ncl) , fun=LPIsolveACFfork , LPIparam )))
-        ## make sure that the analysis in the current MPI task is also finished
-        value(futureOut)
+        if(LPIparam$nCores>1){
+##            print('multicore, LPIsolveACFfork, future')
+            futureOut <- future(LPIsolveACFfork( 1 , LPIparam  ) )
+            ## start analysis in the other MPI nodes using clusterApply
+##            print('multicore, LPIsolveACFfork, clusterApply')
+            print(unlist(snow::clusterApply( cl , seq(2,Ncl) , fun=LPIsolveACFfork , LPIparam )))
+            ## make sure that the analysis in the current MPI task is also finished
+##            print('multicore, LPIsolveACFfork, clusterApply, done')
+            value(futureOut)
+##            print('multicore, LPIsolveACFfork, future, done')
+        }else{
+##            print('multicore, LPIsolveACFfork, clusterApply')
+            print(unlist(snow::clusterApply( cl , seq(1,Ncl) , fun=LPIsolveACFfork , LPIparam )))
+##            print('multicore, LPIsolveACFfork, clusterApply, done')
+        }
     }
-    
+##    print('LPI done')
 
     ## this loop is now in LPIsolveACFfork
     
