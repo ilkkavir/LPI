@@ -63,6 +63,9 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
         solver.env <- dummy.init( range( LPIenv[["rangeLimits"]][ 1 : (LPIenv[["nGates"]][lag]+1) ]) )
     }else if ( LPIenv[["solver"]]=="ffts" ){
         solver.env <- ffts.init( LPIenv[["nGates"]][lag] , LPIenv[["TX1"]][["idata"]][1:LPIenv[["nData"]]])
+    }else if ( LPIenv[["solver"]]=="fftws" ){
+        solver.env <- fftws.init( LPIenv[["nGates"]][lag] , LPIenv[["TX1"]][["idata"]] , LPIenv[["nData"]] )
+
     }
     
     ## Copy of LPIenv[["nData"]]
@@ -120,6 +123,18 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
         }else if( LPIenv[["solver"]]=="ffts"){
             addtime <- system.time({
                 ffts.add( e       = solver.env        ,
+                         M.data  = LPIenv[["cprod"]] ,
+                         M.ambig = LPIenv[["camb"]]  ,
+                         I.ambig = LPIenv[["iamb"]]  ,
+                         I.prod  = LPIenv[["iprod"]] ,
+                         E.data  = LPIenv[["var"]]   ,
+                         nData   = as.integer(LPIenv[["nData"]] - l)
+                         )
+            }) 
+            
+        }else if( LPIenv[["solver"]]=="fftws"){
+            addtime <- system.time({
+                fftws.add( e       = solver.env        ,
                          M.data  = LPIenv[["cprod"]] ,
                          M.ambig = LPIenv[["camb"]]  ,
                          I.ambig = LPIenv[["iamb"]]  ,
@@ -219,6 +234,8 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
         dummy.solve( e = solver.env , LPIenv[["rangeLimits"]][1:(LPIenv[["nGates"]][lag]+1)])
     }else if( LPIenv[["solver"]]=="ffts"){
         ffts.solve( e = solver.env , LPIenv[["rangeLimits"]][1:(LPIenv[["nGates"]][lag]+1)])
+    }else if( LPIenv[["solver"]]=="fftws"){
+        fftws.solve( e = solver.env , LPIenv[["rangeLimits"]][1:(LPIenv[["nGates"]][lag]+1)])
     }
     
     ## Create the return environment
