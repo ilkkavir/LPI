@@ -20,11 +20,11 @@ fftws.solve <- function( e , rlims )
     #
     # FFT deconvolution. Final solver function.
     #
-    # I. Virtanen 2012
+    # I. Virtanen 2012, 2025
     #
 
     # Solve the lag profile by means of FFT
-    sol <- fftw:IFFT( e[["fy"]]   / e[["sqfamb"]] , plan=e[["FFTplan"]] ) / e[["n"]]
+    sol <- fftw::IFFT( e[["fy"]]   / e[["sqfamb"]] , plan=e[["FFTplan"]] )
 
     # Variance, the same value will be repeated at all ranges
     var <- e[["varsum"]] / as.double(e[["nmeas"]])  * mean( 1/ e[["sqfamb"]] )

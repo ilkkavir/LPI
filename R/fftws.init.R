@@ -33,7 +33,7 @@ fftws.init <- function( rrange , itx , nData )
     ps <- which(diff(itx>0)==1) 
     pe <- which(diff(itx>0)==-1)
     ps <- ps[ps<nData]
-    pe <- ps[pe<=nData]
+    pe <- pe[pe<=nData]
     ps <- ps[ps<max(pe)]
     pe <- pe[pe>min(ps)]
     plenmax <- max(pe-ps)

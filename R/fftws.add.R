@@ -71,16 +71,16 @@ fftws.add <- function( e , M.data , M.ambig , I.ambig , I.prod , E.data , nData 
         e[["famb.tmp"]][] <- fftw::FFT( e[["amb.tmp"]] , plan=e[["FFTplan"]])
         
         ## first echo sample to use
-        s1 <- ps[k] + e[["rmin"]]
+        s1 <- min( nData , ps[k] + e[["rmin"]] )
 
         ## last echo sample to use
-        s2 <- min( nData , e[["rmax"]] + pe[k] - ps[k] )
-        
+        s2 <- min( nData , e[["rmax"]] + pe[k] )
+
         ## Copy data
         e[["meas.tmp"]][ 1 : ( s2 - s1 + 1 ) ] <- M.data[ s1 : s2 ]
     
         ## Actual addition to the solver
-        e[["fy"]][]     <- e[["fy"]]     + Conj( e[["famb.tmp"]] ) * fftw:FFT( e[["meas.tmp"]] , plan=e[["FFTplan"]] )
+        e[["fy"]][]     <- e[["fy"]]     + Conj( e[["famb.tmp"]] ) * fftw::FFT( e[["meas.tmp"]] , plan=e[["FFTplan"]] )
         e[["sqfamb"]][] <- e[["sqfamb"]] + abs( e[["famb.tmp"]] )**2
 
         ## Variances

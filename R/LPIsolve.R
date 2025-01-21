@@ -62,9 +62,9 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     }else if ( LPIenv[["solver"]]=="dummy" ){
         solver.env <- dummy.init( range( LPIenv[["rangeLimits"]][ 1 : (LPIenv[["nGates"]][lag]+1) ]) )
     }else if ( LPIenv[["solver"]]=="ffts" ){
-        solver.env <- ffts.init( LPIenv[["nGates"]][lag] , LPIenv[["TX1"]][["idata"]][1:LPIenv[["nData"]]])
+        solver.env <- ffts.init( range( LPIenv[["rangeLimits"]][ 1 : (LPIenv[["nGates"]][lag]+1) ]) , LPIenv[["TX1"]][["idata"]][1:LPIenv[["nData"]]])
     }else if ( LPIenv[["solver"]]=="fftws" ){
-        solver.env <- fftws.init( LPIenv[["nGates"]][lag] , LPIenv[["TX1"]][["idata"]] , LPIenv[["nData"]] )
+        solver.env <- fftws.init( range( LPIenv[["rangeLimits"]][ 1 : (LPIenv[["nGates"]][lag]+1) ]) , LPIenv[["TX1"]][["idata"]] , LPIenv[["nData"]] )
 
     }
     
