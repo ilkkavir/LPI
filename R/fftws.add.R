@@ -29,18 +29,16 @@ fftws.add <- function( e , M.data , M.ambig , I.ambig , I.prod , E.data , nData 
     ## I. Virtanen 2012, 2025
     ##
 
-    ## Return immediately if the ambiguity
-    ## function is zero at all points
-    if( ! any( I.ambig[1:nData] ) ) return()
-    
     ## Remove possibly remaining non-zero values
     ## from points with unset index vector
-    M.data[  which(!I.prod)  ] <- 0+0i
-    E.data[  which(!I.prod)  ] <- 0
-    M.ambig[ which(!I.ambig) ] <- 0+0i
+    M.data[  !I.prod  ] <- 0+0i
+    E.data[  !I.prod  ] <- 0
+    M.ambig[ !I.ambig ] <- 0+0i
+
+    dambig <- diff(I.ambig > 0)
     
     ## Locate pulse start positions 
-    ps <- which( diff( I.ambig[1:nData] > 0 ) == 1 )
+    ps <- which( dambig == 1 )
     
     ## The first point should be adjusted to pulse start,
     ## so it is safe to use if the index is set
@@ -48,12 +46,15 @@ fftws.add <- function( e , M.data , M.ambig , I.ambig , I.prod , E.data , nData 
     npulse <- length( ps )
     
     ## Locate pulse end positions
-    pe <- which( diff( I.ambig[1:nData] > 0 ) == -1 )
+    pe <- which( dambig == -1 )
     
     ## pe and ps should be of the same length,
     ## but check anyway...
     npulse <- min( length(pe) , length(ps) )
 
+    ## return if no pulses found
+    if( npulse < 1 ) return() 
+    
     ## Add data from one IPP at a time
     for( k in seq( npulse ) ){
         

@@ -73,7 +73,7 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
 
     ## theory row counter
     NROWS <- 0
-    
+
     ## Walk through all fractional time-lags
     for( l in seq( LPIenv[["lagLimits"]][lag] , ( LPIenv[["lagLimits"]][lag+1] - 1 ) )){
         
@@ -111,17 +111,17 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
         ## directly with the product vectors
         if( LPIenv[["solver"]]=="dummy" ){
             
-            addtime <- system.time({
+#            addtime <- system.time({
                 dummy.add( e      = solver.env        ,
                           M.data  = LPIenv[["cprod"]] ,
                           M.ambig = LPIenv[["camb"]]  ,
                           I.ambig = LPIenv[["iamb"]]  ,
                           I.prod  = LPIenv[["iprod"]] ,
                           E.data  = LPIenv[["var"]] , nData = as.integer( LPIenv[["nData"]] - l ) )
-            })
+#            })
                 
         }else if( LPIenv[["solver"]]=="ffts"){
-            addtime <- system.time({
+#            addtime <- system.time({
                 ffts.add( e       = solver.env        ,
                          M.data  = LPIenv[["cprod"]] ,
                          M.ambig = LPIenv[["camb"]]  ,
@@ -130,10 +130,10 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
                          E.data  = LPIenv[["var"]]   ,
                          nData   = as.integer(LPIenv[["nData"]] - l)
                          )
-            }) 
+#            }) 
             
         }else if( LPIenv[["solver"]]=="fftws"){
-            addtime <- system.time({
+#            addtime <- system.time({
                 fftws.add( e       = solver.env        ,
                          M.data  = LPIenv[["cprod"]] ,
                          M.ambig = LPIenv[["camb"]]  ,
@@ -142,13 +142,13 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
                          E.data  = LPIenv[["var"]]   ,
                          nData   = as.integer(LPIenv[["nData"]] - l)
                          )
-            }) 
+ #           }) 
             
             ## Other solvers need theory matrix rows
         }else{
             ## Produce theory matrix rows in
             ## (small) sets and add them to the solver
-            addtime <- system.time({
+#            addtime <- system.time({
             while( newrows <- theoryRows( LPIenv , lag ) ){
                 NROWS <- NROWS + LPIenv[["nrows"]]
                 ## If new rows were produced
@@ -209,7 +209,7 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
                     }
                 }
             }
-            })
+ #           })
         }
         
         ## Make sure that the original value is
@@ -241,6 +241,8 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     ## Create the return environment
     lagprof <- new.env()
 
+    addtime <- NA
+    
     ## Assign the solution to the new environment
     assign( "lagprof" , solver.env[["solution"]] , lagprof )
     assign( "covariance" , solver.env[["covariance"]] , lagprof )

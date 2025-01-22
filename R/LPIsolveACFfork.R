@@ -133,10 +133,11 @@ LPIsolveACFfork <- function( intPerFirst , LPIparam )
                         ncl <- LPIparam$nCores
                     }
                     ##ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , mc.cores=ncl )
-                    analysisTime <- system.time({
-                        ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , intPeriod=intPeriod, mc.cores=ncl )
-                    })
-
+#                    analysisTime <- system.time({
+                    ACFlist <- parallel::mclapply( x , FUN=LPI:::LPIsolve , LPIenv.name=substitute(LPIdatalist.final) , intPeriod=intPeriod, mc.cores=ncl )
+#                    })
+                    analysisTime <- NA
+                    
                     ## sum of the flop counters
                     FLOP <- 0
                     ## time used for adding the theory lines to the solver
