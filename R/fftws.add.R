@@ -32,7 +32,7 @@ fftws.add <- function( e , M.data , M.ambig , I.ambig , I.prod , E.data , nData 
     ## Remove possibly remaining non-zero values
     ## from points with unset index vector
     M.data[  !I.prod  ] <- 0+0i
-    E.data[  !I.prod  ] <- 0
+#    E.data[  !I.prod  ] <- 0 # no need for this, because there is an error for every single point
     M.ambig[ !I.ambig ] <- 0+0i
 
     dambig <- diff(I.ambig > 0)
