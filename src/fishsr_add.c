@@ -67,6 +67,10 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
   SEXP success;
   int * restrict i_success;
 
+  double std;
+  double * mtmpR;
+  double * mtmpI;
+
   // success output
   PROTECT( success = allocVector( LGLSXP , 1 ) );
 
@@ -76,6 +80,54 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
   // set the success output (will always be 1 at the moment..)
   *i_success = 1;
 
+
+
+
+
+  // noise whitening (divide A and m with sqrt(var) )
+  atmpR = acpyR;
+  atmpI = acpyI;
+  itmp = icpy;
+  mtmpR = mcpyR;
+  mtmpI = mcpyI;
+
+  // Go through all theory matrix rows
+  for( l = 0 ; l < nr ; ++l ){
+
+    std = sqrt(*vcpy);
+    
+    // Go through all range gates
+    for( i = 0 ; i < n ; ++i ){
+
+      // divide only if this sample will be used
+      if(*itmp){
+	*atmpR = *atmpR / std;
+	*atmpI = *atmpI / std;
+      }
+      
+      // Increment the theory matrix counter
+      ++atmpR;
+      ++atmpI;
+      ++itmp;
+      
+    }
+
+    // divide the measurement with std
+    *mtmpR = *mtmpR / std;
+    *mtmpI = *mtmpI / std;
+    
+    // Increment the variance and measurement vector counters
+    ++vcpy;
+    ++mtmpR;
+    ++mtmpI;
+
+  }
+
+
+
+  
+  
+  
   // Go through all theory matrix rows
   for( l = 0 ; l < nr ; ++l ){
 
@@ -170,8 +222,8 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 	    for (k = 0 ; k<naddlines ; ++k ){
 
 	      // Add information
-	      *qtmpR += ( *acpyR * *atmpR + *acpyI * *atmpI ) / *vcpy;
-	      *qtmpI += ( *acpyR * *atmpI - *acpyI * *atmpR ) / *vcpy;
+	      *qtmpR += ( *acpyR * *atmpR + *acpyI * *atmpI );// / *vcpy; // the division is now done before the loop
+	      *qtmpI += ( *acpyR * *atmpI - *acpyI * *atmpR );// / *vcpy; // the division is now done before the loop
 	      
 	      
 	      // Increment the second theory matrix counter
@@ -197,8 +249,8 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
 
 	
         // Add the corresponding measurement to the y-vector
-	*ytmpR += ( *mcpyR * *acpyR + *mcpyI * *acpyI ) / *vcpy;
-        *ytmpI += ( *mcpyI * *acpyR - *mcpyR * *acpyI ) / *vcpy;
+	*ytmpR += ( *mcpyR * *acpyR + *mcpyI * *acpyI );// / *vcpy; // the division is now done before the loop
+        *ytmpI += ( *mcpyI * *acpyR - *mcpyR * *acpyI );// / *vcpy;// the division is now done before the loop
 	
         // adding to y requires equally meny flops as adding to Q, so use the same counter
 	n_adds++;
@@ -225,12 +277,13 @@ SEXP fishsr_add( SEXP QvecR , SEXP QvecI , SEXP yvecR , SEXP yvecI , const SEXP 
     // Increment the variance and measurement vector counters
     ++mcpyR;
     ++mcpyI;
-    ++vcpy;
+    //    ++vcpy;
 
   }
 
   // total number of floating point operations.
-  *flop_count += 10.*((double)(n_adds));
+  //  *flop_count += 10.*((double)(n_adds));
+  *flop_count += 8.*((double)(n_adds));
   
   UNPROTECT(1);
 

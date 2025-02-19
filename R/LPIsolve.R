@@ -241,13 +241,13 @@ LPIsolve <- function( lag , LPIenv.name , intPeriod=0)
     ## Create the return environment
     lagprof <- new.env()
 
-    addtime <- NA
+#    addtime <- NA
     
     ## Assign the solution to the new environment
     assign( "lagprof" , solver.env[["solution"]] , lagprof )
     assign( "covariance" , solver.env[["covariance"]] , lagprof )
     assign( "lagnum" , lag , lagprof )
-    assign( "addtime" , addtime , lagprof)
+#    assign( "addtime" , addtime , lagprof)
     assign( "NROWS" , NROWS , lagprof )
     if( any( LPIenv[["solver"]]==c('fishsr','decor'))){
         assign( "FLOPS" , solver.env[['FLOPS']] , lagprof )

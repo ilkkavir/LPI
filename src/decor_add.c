@@ -62,6 +62,10 @@ SEXP decor_add( SEXP QvecR , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const
   SEXP success;
   int * restrict i_success;
 
+  double std;
+  double * mtmpR;
+  double * mtmpI;
+
   // success output
   PROTECT( success = allocVector( LGLSXP , 1 ) );
 
@@ -70,6 +74,56 @@ SEXP decor_add( SEXP QvecR , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const
 
   // set the success output (will always be 1 at the moment..)
   *i_success = 1;
+
+
+  
+
+
+
+  // noise whitening (divide A and m with sqrt(var) )
+  atmpR = acpyR;
+  atmpI = acpyI;
+  itmp = icpy;
+  mtmpR = mcpyR;
+  mtmpI = mcpyI;
+
+  // Go through all theory matrix rows
+  for( l = 0 ; l < nr ; ++l ){
+
+    std = sqrt(*vcpy);
+    
+    // Go through all range gates
+    for( i = 0 ; i < n ; ++i ){
+
+      // divide only if this sample will be used
+      if(*itmp){
+	*atmpR = *atmpR / std;
+	*atmpI = *atmpI / std;
+      }
+      
+      // Increment the theory matrix counter
+      ++atmpR;
+      ++atmpI;
+      ++itmp;
+      
+    }
+
+    // divide the measurement with std
+    *mtmpR = *mtmpR / std;
+    *mtmpI = *mtmpI / std;
+    
+    // Increment the variance and measurement vector counters
+    ++vcpy;
+    ++mtmpR;
+    ++mtmpI;
+
+  }
+
+
+
+  
+  
+
 
   // Go through all theory matrix rows
   for( l = 0 ; l < nr ; ++l ){
@@ -99,11 +153,11 @@ SEXP decor_add( SEXP QvecR , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const
 	for (k = 0 ; k<naddlines ; ++k ){
 	  
 	  // Add information, the imaginary part is always zero
-	  *qtmpR += ( *acpyR * *acpyR + *acpyI * *acpyI ) / *vcpy;
+	  *qtmpR += ( *acpyR * *acpyR + *acpyI * *acpyI ); // / *vcpy;
 	  
 	  // Add the corresponding measurement to the y-vector
-	  *ytmpR += ( *mcpyR * *acpyR + *mcpyI * *acpyI ) / *vcpy;
-	  *ytmpI += ( *mcpyI * *acpyR - *mcpyR * *acpyI ) / *vcpy;
+	  *ytmpR += ( *mcpyR * *acpyR + *mcpyI * *acpyI ); // / *vcpy;
+	  *ytmpI += ( *mcpyI * *acpyR - *mcpyR * *acpyI ); // / *vcpy;
 	  
 	  // Increment the information matrix and measurement vector counters
 	  ++qtmpR;
@@ -129,12 +183,13 @@ SEXP decor_add( SEXP QvecR , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const
     // Increment the variance and measurement vector counters
     ++mcpyR;
     ++mcpyI;
-    ++vcpy;
+    //    ++vcpy;
     
   }
 
   // total number of floating point operations.
-  *flop_count += 15.*((double)(n_adds));
+  //  *flop_count += 15.*((double)(n_adds));
+  *flop_count += 12.*((double)(n_adds));
   
   UNPROTECT(1);
 
