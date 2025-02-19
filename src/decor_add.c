@@ -37,8 +37,11 @@ SEXP decor_add( SEXP QvecR , SEXP yvecR , SEXP yvecI , const SEXP arowsR , const
 
   double *acpyR = REAL(arowsR);
   double *acpyI = REAL(arowsI);
+  double *atmpR;
+  double *atmpI;
 
   int *icpy = LOGICAL(irows);  
+  int *itmp;  
 
   double * restrict mcpyR = REAL(measR);
   double * restrict mcpyI = REAL(measI);
