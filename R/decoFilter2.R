@@ -20,7 +20,7 @@
 ##
 
 ##
-## this is not working, do not use! Will replace with something better... 
+## only matched filtering with recorded waveforms is implemented at the moment
 ##
 
 
@@ -37,7 +37,10 @@ decoFilter2 <- function( cdataT , idataT , cdataR , idataR , ndata , filterType=
     if(ntx<1) return(cdataR)
     
     ## Set the data points before the first pulse to zero
-    if( txstarts[1] > 0 ) cdataR[1:txstarts[1]] <- 0+0i
+    if( txstarts[1] > 0 ){
+        cdataR[1:txstarts[1]] <- 0+0i
+        cdataT[1:txstarts[1]] <- 0+0i
+    }
     
     
     ## Set transmitter data to zero at points that are not transmitter samples
@@ -48,9 +51,10 @@ decoFilter2 <- function( cdataT , idataT , cdataR , idataR , ndata , filterType=
 
     ## make sure that there are only zeros and ones in idataR
     idataR = idataR!=0
-    
+
     ## Filtering with user-defined coefficients
     if( is.numeric( filterType ) ){
+        stop("the filter is not implemented in this version")
         nfilter <- length(filterType)
         for( k in seq(  ntx ) ){
             cdataT[ (txstarts[k]+1) : (txstarts[k+1]) ] <- 0+0i
@@ -74,6 +78,7 @@ decoFilter2 <- function( cdataT , idataT , cdataR , idataR , ndata , filterType=
     }else if( is.character( filterType ) ){
         ## Inverse filtering
         if(filterType=="inverse"){
+            stop("the inverse filter is not implemented in this version")
             for( k in seq(  ntx ) ){
                 cpow <- abs(cdataT[ (txstarts[k]+1) : (txstarts[k+1]) ])**2
                 dscale <- sqrt(fft( fft( cpow ) * Conj( fft( idataR[ (txstarts[k]+1) : (txstarts[k+1]) ] ) ) , inverse=TRUE ) / (txstarts[k+1]-txstarts[k]) )
@@ -96,24 +101,40 @@ decoFilter2 <- function( cdataT , idataT , cdataR , idataR , ndata , filterType=
         # Matched filtering
         }else if(filterType=="matched"){
             for( k in seq( ntx ) ){
+                
+                ## use IPP + pulse length samples in decoding to avoid data loss in bistatic measurements
+                ii1 <- txstarts[k]+1
+                ii2 <- txstarts[k+1]
+                nn2 <- ii2-ii1+1
+                ## pulse length
+                plen <- sum(idataT[ ii1 : ii2 ])
+                ii3 <- txstarts[k] + nextn(txstarts[k+1] - txstarts[k] + plen)
+                ii3 <- min(ii3,ndata) ## will this cause an error after the last pulse?
+                nii <- ii3-ii1+1
 
-                cpow <- abs(cdataT[ (txstarts[k]+1) : (txstarts[k+1]) ])**2
-                dscale <- abs(sqrt(fft( fft( cpow ) * Conj( fft( idataR[ (txstarts[k]+1) : (txstarts[k+1]) ] ) ) , inverse=TRUE ) / (txstarts[k+1]-txstarts[k]) ))
-                cdataR[ (txstarts[k]+1) : (txstarts[k+1]) ] <-
-                    fft(
-                        fft( cdataR[ (txstarts[k]+1) : (txstarts[k+1]) ] ) *
-                        Conj( fft( cdataT[ (txstarts[k]+1) : (txstarts[k+1]) ] ) ) , inverse=TRUE ) / ( (txstarts[k+1]-txstarts[k]) * dscale )
-                cdataT[ (txstarts[k]+1) : (txstarts[k+1]) ] <-
-                    fft(
-                        fft( cdataT[ (txstarts[k]+1) : (txstarts[k+1]) ] ) *
-                        Conj( fft( cdataT[ (txstarts[k]+1) : (txstarts[k+1]) ] ) ) , inverse=TRUE ) / ( (txstarts[k+1]-txstarts[k]) * sqrt(sum(abs(cdataT[ (txstarts[k]+1) : (txstarts[k+1]) ])**2)) )
-                idataR[ (txstarts[k]+1) : (txstarts[k+1]) ] <-
-                    abs( fft(
-                        fft( idataR[ (txstarts[k]+1) : (txstarts[k+1]) ] ) *
-                        Conj( fft( idataT[ (txstarts[k]+1) : (txstarts[k+1]) ] ) ) , inverse=TRUE ) / ((txstarts[k+1]-txstarts[k]) ) 
-                        ) > .1
-                ## each pulse should has been compressed into a single short pulse in the decoding
-                idataT[(txstarts[k]+2):txstarts[k+1]] <- FALSE
+                ## zero-padded transmission envelope
+                cdataTtmp <- c( cdataT[ ii1 : ii2 ]  , rep(0+0i , ii3-ii2) )
+
+                ## power of the complex transmission envelope
+                cpow <- abs(cdataTtmp)**2
+
+                ## complex conjugate of fft of the transmission envelope
+                cdataTfftConj <- Conj( fft(cdataTtmp) ) 
+
+                ## data scaling factors
+                dscale <- abs( sqrt( fft( fft( cpow ) * Conj( fft( idataR[ ii1 : ii3 ] ) ) , inverse=TRUE ) / nii ))[ 1:nn2 ]
+
+                ## decode the complex received signal
+                cdataR[ ii1 : ii2] <- fft( fft( cdataR[ ii1 : ii3 ] ) * cdataTfftConj , inverse=TRUE )[ 1:nn2 ] / ( nii * dscale )
+
+                ## decode the complex transmitted signal
+                cdataT[ ii1 : ii2] <- fft( abs(cdataTfftConj)**2 , inverse=TRUE )[ 1:nn2 ] / ( nii * sqrt(sum( cpow )) )
+
+                ## fix the RX indices
+                idataR[ ii1 : ii2 ]  <-  abs( fft( fft(idataR[ ii1 : ii3 ] ) * Conj( fft( idataT[ii1:ii3]) ) , inverse=TRUE)[ 1:nn2 ]  / nii ) > .1
+
+                ## each pulse should have been compressed into a single short pulse in the decoding
+                idataT[ (ii1 + 1 ):ii2] <- FALSE
 
             }
             ## Other filters are not supported at the moment
