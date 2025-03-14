@@ -60,6 +60,16 @@ SEXP dummy_add( SEXP msum , SEXP vsum , SEXP rmin , SEXP rmax , SEXP mdata , SEX
 
   // Walk through the data vector
   for( i = 0 ;  i < nd ; ++i ){
+
+    // If a new pulse is transmitted set range to zero, 
+    // otherwise increment the range counter. 
+    if( ia[i] ){
+      r = 0;
+      r0 = i;
+    }else{
+      ++r;
+    }
+    
     // Check that we are above r1
     if( r >= r1 ){
       // Check that we are below r2
@@ -78,14 +88,6 @@ SEXP dummy_add( SEXP msum , SEXP vsum , SEXP rmin , SEXP rmax , SEXP mdata , SEX
       }
     }
 
-    // If a new pulse is transmitted set range to zero, 
-    // otherwise increment the range counter. 
-    if( ia[i] ){
-      r = 0;
-      r0 = i;
-    }else{
-      ++r;
-    }
   }
 
   UNPROTECT(1);
