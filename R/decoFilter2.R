@@ -103,17 +103,17 @@ decoFilter2 <- function( cdataT , idataT , cdataR , idataR , ndata , filterType=
             for( k in seq( ntx ) ){
                 
                 ## use IPP + pulse length samples in decoding to avoid data loss in bistatic measurements
-                ii1 <- txstarts[k]+1
-                ii2 <- txstarts[k+1]
-                nn2 <- ii2-ii1+1
-                ## pulse length
-                plen <- sum(idataT[ ii1 : ii2 ])
-                ii3 <- txstarts[k] + nextn(txstarts[k+1] - txstarts[k] + plen)
+                ii1 <- txstarts[k]+1 # first sample
+                ii2 <- txstarts[k+1] # last sample to decode
+                nn2 <- ii2-ii1+1 # number of samples to decode
+                plen <- sum(idataT[ ii1 : ii2 ])## pulse length
+                ii3 <- txstarts[k] + nextn(txstarts[k+1] - txstarts[k] + plen) # last sample in fft
                 ii3 <- min(ii3,ndata) ## will this cause an error after the last pulse?
-                nii <- ii3-ii1+1
+                nii <- ii3-ii1+1 # number of samples in fft
 
                 ## zero-padded transmission envelope
                 cdataTtmp <- c( cdataT[ ii1 : ii2 ]  , rep(0+0i , ii3-ii2) )
+                idataTtmp <- c( idataT[ ii1 : ii2 ]  , rep( FALSE , ii3-ii2) )
 
                 ## power of the complex transmission envelope
                 cpow <- abs(cdataTtmp)**2
@@ -122,7 +122,7 @@ decoFilter2 <- function( cdataT , idataT , cdataR , idataR , ndata , filterType=
                 cdataTfftConj <- Conj( fft(cdataTtmp) ) 
 
                 ## data scaling factors
-                dscale <- abs( sqrt( fft( fft( cpow ) * Conj( fft( idataR[ ii1 : ii3 ] ) ) , inverse=TRUE ) / nii ))[ 1:nn2 ]
+                dscale <- sqrt( abs( fft( Conj( fft( cpow) ) * fft( idataR[ ii1 : ii3 ] ) , inverse=TRUE ) / nii ))[ 1:nn2 ]
 
                 ## decode the complex received signal
                 cdataR[ ii1 : ii2] <- fft( fft( cdataR[ ii1 : ii3 ] ) * cdataTfftConj , inverse=TRUE )[ 1:nn2 ] / ( nii * dscale )
@@ -131,7 +131,8 @@ decoFilter2 <- function( cdataT , idataT , cdataR , idataR , ndata , filterType=
                 cdataT[ ii1 : ii2] <- fft( abs(cdataTfftConj)**2 , inverse=TRUE )[ 1:nn2 ] / ( nii * sqrt(sum( cpow )) )
 
                 ## fix the RX indices
-                idataR[ ii1 : ii2 ]  <-  abs( fft( fft(idataR[ ii1 : ii3 ] ) * Conj( fft( idataT[ii1:ii3]) ) , inverse=TRUE)[ 1:nn2 ]  / nii ) > .1
+#                idataR[ ii1 : ii2 ]  <-  abs( fft( fft(idataR[ ii1 : ii3 ] ) * Conj( fft( idataTtmp) ) , inverse=TRUE)[ 1:nn2 ]  / nii ) > .1
+                idataR[ ii1 : ii2 ]  <-  dscale/sqrt(sum(cpow)) > .1
 
                 ## each pulse should have been compressed into a single short pulse in the decoding
                 idataT[ (ii1 + 1 ):ii2] <- FALSE
@@ -145,7 +146,7 @@ decoFilter2 <- function( cdataT , idataT , cdataR , idataR , ndata , filterType=
         stop("Unknown decoding filter")
     }
     
-    return(list(cdataT=cdataT , idataT=idataT , cdataR=cdataR , idataR=idataR))
+    return(list(cdataT=cdataT , idataT=idataT , cdataR=cdataR , idataR=idataR ))
 
     
 }
