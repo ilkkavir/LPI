@@ -7,26 +7,44 @@
 
 \description{Lag Profile Inversion}
 
-\usage{LPI( dataInputFunction, inputPackages=c(), startTime = 0,
-stopTime = 4000000000, nup = LPIexpand.input( 1 ), filterLength =
-LPIexpand.input( 1 ), decodingFilter = "none", lagLimits = c(1,2),
-rangeLimits = c(1,2), maxRanges = Inf, maxClutterRange = 0,
-clutterFraction = 1, timeRes.s = 10, backgroundEstimate=TRUE,
-clusterNodes = NA, nodeMultip=1, useXDR=FALSE, maxWait.s = -1,
-freqOffset = LPIexpand.input( 0 ), indexShifts = LPIexpand.input( list(c(0,0)) ),
-solver = "fishs", nBuf = 10000, fullCovar = FALSE, rlips.options = list(
-type="c" , nbuf=1000 , workgroup.size=128), remoteRX = FALSE, normTX = FALSE, nCode = NA,
-ambInterp = FALSE, resultDir = paste(format(Sys.time(),"\%Y-\%m-\%d_\%H:\%M"),'LP',sep='_'),
-dataEndTimeFunction="currentTimes", resultSaveFunction = "LPIsaveACF",
-paramUpdateFunction="noUpdate" , ... )
+\usage{LPI( dataInputFunction,
+inputPackages=c(),
+startTime = 0,
+stopTime = 4000000000,
+nup = LPIexpand.input( 1 ),
+filterLength = LPIexpand.input( 1 ),
+decodingFilter = "none",
+lagLimits = c(1,2), 
+rangeLimits = c(1,2),
+maxRanges = Inf,
+maxClutterRange = 0,
+clutterFraction = 1,
+timeRes.s = 10,
+backgroundEstimate=TRUE,
+maxWait.s = -1,
+freqOffset = LPIexpand.input( 0 ),
+indexShifts = LPIexpand.input( list(c(0,0)) ),
+solver = "fishsr",
+nBuf = 10000,
+fullCovar = FALSE,
+rlips.options = list( type="c" , nbuf=1000 , workgroup.size=128),
+remoteRX = FALSE,
+normTX = FALSE,
+nCode = NA,
+ambInterp = FALSE,
+resultDir = paste(format(Sys.time(),"\%Y-\%m-\%d_\%H:\%M"),'LP',sep='_'),
+dataEndTimeFunction="currentTimes",
+resultSaveFunction = "LPIsaveACF",
+paramUpdateFunction="noUpdate" ,
+cl=NULL ,
+nCores=NULL ,... )
 }
 
 \arguments{
   
   \item{dataInputFunction}{ Raw data input function name as a
     string. The function will get a list of all LPI input arguments as
-    input and it must return a valid list of raw data vectors. See
-    details. 
+    input and it must return a valid list of raw data vectors.  
   }
   
   \item{inputPackages}{Additional package(s) that contain functions
@@ -42,26 +60,6 @@ paramUpdateFunction="noUpdate" , ... )
     
     Default: 4000000000 (2nd Oct 2096 07:00 UT)
   }
-  
-  \item{clusterNodes}{A list defining the computer cluster, see
-    details.
-
-    Default: NA (sequential analysis)
-  }
-
-  \item{nodeMultip}{ Number of integration periods solved in each
-    cluster node before returning to the main node for file list
-    update. 
-    
-    Default: 1
-
-    }
-
-  \item{useXDR}{ Should serialization in cluster communication use XDR?
-    See help of the function 'makeCluster' from package 'parallel'.
-
-    Default: FALSE
-    }
   
   \item{timeRes.s}{Analysis time resolution (integration time) in
     seconds.
@@ -215,9 +213,9 @@ paramUpdateFunction="noUpdate" , ... )
     
   
   \item{solver}{Inverse problem solver selection, accepted values
-    are "rlips", "fishs", "deco", "ffts", and "dummy". See details.
+    are "fishsr", "decor", "dummy", "rlips", "fishs", "deco", and "ffts". See details.
     
-    Default: "fishs"
+    Default: "fishsr"
   }
   
   \item{nBuf}{Number of theory matrix rows to buffer before
@@ -560,6 +558,20 @@ paramUpdateFunction="noUpdate" , ... )
 
       Default: "currentTimes"
     }
+
+    \item{'cl'}{A cluster environment returned e.g. by
+    getMPIcluster. Integration periods are divided between the cluster
+    nodes. Each cluster runs nCores time lags in parallel. Use NULL for
+    sequential analysis. 
+
+    Default: NULL
+  }
+
+  \item{'nCores'}{Number of cores available to each cluster nodes. If
+    NULL, the number of cores is queried by parallelly::availableCores.
+
+    Default: NULL
+  }
 
     Because LPI does not have its own I/O routines it cannot actually
     check availability of data, but it assumes that all integration

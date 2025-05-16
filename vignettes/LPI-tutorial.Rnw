@@ -15,7 +15,7 @@
 %\usepackage{math}
 
 \usepackage{parskip}
-\usepackage{hyperref}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
 
 
 \newcommand{\code}[1]{{\tt #1}}
@@ -77,11 +77,11 @@ commentstyle=\footnotesize\color{blue}
 
 
 \title{LPI \\
-Lag Profile Inversion \\
-EISCAT3D, Work Package 11, Task 11.4}
+Lag Profile Inversion}
+
 \author{Ilkka Virtanen\\
-Department of Physics\\ University of Oulu, Finland}
-\date{Version 0.3-5 \\ \today}                                           % Activate to display a given date or no date
+Space Physics and Astronomy\\ University of Oulu, Finland}
+\date{Version 0.4 \\ \today}                                           % Activate to display a given date or no date
 
 \begin{document}
 
@@ -100,7 +100,7 @@ Department of Physics\\ University of Oulu, Finland}
 {\bfseries LPI (Lag Profile Inversion)}
 \vspace*{6pt}
 
-\noindent Copyright 2010--2013 University of Oulu, Finland. All rights reserved.
+\noindent Copyright 2010--2025 University of Oulu, Finland. All rights reserved.
 \vspace*{6pt}
 
 \noindent
@@ -148,31 +148,39 @@ policies, either expressed or implied, of University of Oulu.
 
 \chapter{Introduction}
 
-\section{Purpose of this document}
-
-
-Development and documentation of an incoherent scatter data analysis software based on the lag profile inversion paradigm was the Task 11.4 of the Work Pacakge 11 (Software theory and implementation) of the European Union's Framework 7 project EISCAT\_3D. This document serves as part of the final report of the Task 11.4 as well as a tutorial for the package and lag profile inversion in general. A standard user manual of the R package is provided as a separate document. 
+%\section{Purpose of this document}
+%
+%
+%Development and documentation of an incoherent scatter data analysis software based on the lag profile inversion paradigm was the Task 11.4 of the Work Pacakge 11 (Software theory and implementation) of the European Union's Framework 7 project EISCAT\_3D. This document serves as part of the final report of the Task 11.4 as well as a tutorial for the package and lag profile inversion in general. A standard user manual of the R package is provided as a separate document. 
 
 \section{Lag Profile Inversion}
 
-LPI is an R\footnote{R is a free open source software environment for statistical computing and graphics. It is licensed under GPL and it is available for various platforms. See \url{http://www.r-project.org} for details.} package for suppressing range ambiguities from incoherent scatter radar\footnote{The package was developed for IS radars, but it is in principle applicable for all kinds of radars.} lag profiles. LPI solves gated autocovariance function or cross-covariance function estimates from voltage level transmitter and receiver signal samples. LPI replaces traditional decoding techniques with a statistical-inversion-based approach, which makes it applicable to radar experiments that use almost arbitrary transmitter modulations. 
+LPI is an R\footnote{R is a free open source software environment for statistical computing and graphics. It is licensed under GPL and it is available for various platforms. See \url{http://www.r-project.org} for details.} package for suppressing range ambiguities from incoherent scatter radar\footnote{The package was developed for IS radars, but it is in principle applicable for all kinds of radars.} lag profiles. LPI solves gated autocovariance function or cross-covariance function estimates from voltage level samples of transmitted and received signals. LPI replaces traditional decoding techniques with a statistical-inversion-based approach, which makes it applicable to radar experiments that use almost arbitrary transmission modulations. 
 
 
 \section{Installation}
 
-The package is distributed as a tarball (\verb|LPI_x.x.x.tar.gz|) which can be installed via the standard 
+The package can be installed from linux/unix command line with 
 
-\verb!R CMD INSTALL LPI!
+\verb!R CMD INSTALL <path-to-LPI-source-files>!
 
-procedure (preceding \verb|sudo| is usually required in order to run the command as root). See \verb!R CMD INSTALL --help! for installation options. R version \verb!>= 2.14.0! is required. In order to enable the \verb|rlips| inverse problem solver also the \verb|rlips| package must be installed\footnote{Latest version of rlips is currently available at \href{http://www.sgo.fi/~m/pages/rlips.html}{http://www.sgo.fi/~m/pages/rlips.html}}, whether \verb|rlips| is installed before or after \verb|LPI| is not important. 
+See \verb!R CMD INSTALL --help! for installation options.
+
+Alternatively, the package can be installed from R console with
+
+\verb!install.packages(pkgs=<path-to-LPI-source-files>,repos=NULL)!
 
 
 
 \section{Help}\label{help}
 
-Standard R help pages are provided. They are collected together in the pdf file ``LPI-manual.pdf''. Both the manual and this document ``LPI-tutorial.pdf'' are contained in the distribution package as vignettes. The documents are stored in the distribution tarball (\verb|LPI_x.x.x.tar.gz|) in \verb|/inst/doc/|. 
+Standard R help page is provided for the main function. The help message is available also in the pdf file ``LPI-manual.pdf''. Both the manual and this document ``LPI-tutorial.pdf'' are contained in the distribution package.
 
-After installing the package the vignettes can be opened from R command line following the standard procedure
+Source code the manuals is included in the vignettes directory. To rebuild the manuals, first build the package into a tarball with
+
+\verb!R CMD build <path-to-LPI-source-files>!
+
+and install the tarball with the \verb!R CMD INSTALL command! The vignettes can now be opened from R command line following the standard procedure
 <<eval=FALSE,echo=TRUE>>=
   require(LPI)
   vignette('LPI-manual')
@@ -194,9 +202,9 @@ etc.
 
 \section{Transmitter and receiver signals}
 
-A radar transmitter emits a modulated radio signal that can be expressed as product of a continuous coherent carrier signal $c(t)$ and a modulating transmitter envelope $\env(t)$. Because the carrier sigal contribution can be effectively removed by means of complex frequency mixing to baseband, we will neglect the carrier from this point on and consider only the transmitter envelope $\env(t)$.
+A radar transmitter emits a modulated radio signal that can be expressed as product of a continuous coherent carrier signal $c(t)$ and a modulating transmission envelope $\env(t)$. Because the carrier sigal contribution can be removed by means of complex frequency mixing to baseband, we will neglect the carrier from this point on and consider only the transmission envelope $\env(t)$.
 
-The transmitted modulated signal is scattered from a target and the scattered signal $s(t)$ enters a radar receiver. Because the receiver must have a finite impulse response $p(t)$, the final detected signal is convolution of the scattered signal entering the receiver and the impulse response
+The transmitted signal is scattered from a target and the scattered signal $s(t)$ enters a radar receiver. Because the receiver must have a finite impulse response $p(t)$, the final detected signal is convolution of the scattered signal entering the receiver and the impulse response
 \begin{equation}
   z^r(t) = (s * p)(t).
 \end{equation}  
@@ -205,23 +213,23 @@ We will later need also the similar convolution of the transmitter envelope and 
   z^t(t) = (\env * p)(t).
 \end{equation}  
 
-In reality, discrete signal samples will be recorded with a uniform sample interval $\Delta t$, which produces final recorded sample streams of discrete transmitter and receiver samples
+In reality, discrete signal samples will be recorded with a uniform sample interval $\Delta t$, which produces final recorded sample streams of the transmitted and received waveforms,
 \begin{align}
   z_i^t &= z^t(t_i)\\
   z_i^r &= z^r(t_i)    
 \end{align}
 where $t_i = i\Delta t$.
 
-The receiver sample stream is not continuous in general, because monostatic radar systems cannot receive while transmitting. The transmitter sample stream will be effectively continuous because the transmitter envelope is known to be zero while the radar is not transmitting. The discontinuities in receiver sample stream have siginicant consequencies especially when detecting nearby targets with a monostatic high duty-cycle radar\footnote{Monostatic incoherent scatter radars typically have duty-cycles from 5 to 25 \%}.
+Sampling of the received signal is not continuous in general, because monostatic radar systems cannot receive while transmitting. Sampling of the transmitted waveform will be effectively continuous, because the transmission envelope is known to be zero when the radar is receiving signal. The discontinuous sampling of the received signal has siginicant consequencies especially when detecting nearby targets with a monostatic high duty-cycle radar\footnote{Monostatic incoherent scatter radars typically have duty-cycles from 5 to 25 \%}.
 
 
 \section{Scattering from a target}
 
-If the transmitter signal hits reflecting point target at distance $R^t$ from the radar transmitter and $R^r$ from the receiver the signal entering the receiver can be expressed as
+If the transmitted signal hits reflecting point target at distances $R^t$ from the radar transmitter and $R^r$ from the receiver, echo signal entering the receiver can be expressed as
 \begin{equation}
   s(t) = \xi \env(t-S)
 \end{equation}
-where  range $S$ is signal travel from the transmitter, via the target, to the receiver and $\xi$ is a complex coefficient. The signal is assumed to propagate at the speed of light $c$, allowing the range to be calculated as
+where  range $S$ is signal travel time from the transmitter, via the target, to the receiver and $\xi$ is a complex coefficient. The signal is assumed to propagate at the speed of light $c$, allowing the range to be calculated as
 \begin{equation}
   S = \frac{R^t+R^r}{c}.
 \end{equation}
@@ -238,16 +246,16 @@ Finally, if amplitude or Doppler shift of the scattering changes as function of 
 \begin{equation}
   s(t) = \int \limits_{S_1}^{S_2} \xi(S,t) * \env(t-S) dS
 \end{equation}
-Likewise with range, the time-dependence of $\xi$ was expressed as function of signal reception time instead of the time of scattering. A target is said to be spectrally overspread or Doppler-spread  if power spectrum of any temporal variations is wider than inverse of signal travel time to and from the furthest part of the target.
+Likewise with range, the time-dependence of $\xi$ was expressed as function of signal reception time instead of the time of scattering. A target is said to be spectrally overspread or Doppler-spread  if power spectrum of any temporal variation is wider than inverse of signal travel time to and from the furthest part of the target.
 
-F region of the ionosphere is spread in both range and spectrum, while the D region alone is spread only in range. Because the above layers cannot be generally neglected when probing the D region the ionosphere as whole must be considered as a spread target in both range and Doppler. 
+F region of the ionosphere is spread in both range and spectrum, while the D region alone is spread only in range. Because the ionospheric layers above the intended target cannot be neglected when probing the D region, the ionosphere as whole must be considered as a spread target in both range and Doppler. 
 
 
 \section{Target covariance functions}
 
 If scattering from any individual range $S$ is modeled as  a zero-mean random process, statistical properties of the target can be deduced from different covariance functions of received signals. 
 
-The basic data product of a radar is a set of signal autocovariance function estimates as function of range: $\sigma_a(S,\tau)$ where $\tau$ is time lag. This data product is measured by means of correlating a receiver sample stream with itself.  Similarily, it is possible to correlate sample streams from two physically separate receivers in order to detect  crosscorrelation function as function of range $\sigma_c(S,\tau)$. It is also possible that the crosscorrelation function is calculated in between sample streams recorded with the same device but at orthogonal polarizations. This kind of arrangement is used in orthogonal polarization coding and in Faraday rotation measurements. 
+The basic data product of a radar is a set of signal autocovariance function estimates as function of range: $\sigma_a(S,\tau)$ where $\tau$ is time lag. This data product is measured by means of correlating the received signa with itself.  Similarily, it is possible to correlate signals from two physically separate receivers in order to detect  crosscorrelation function as function of range $\sigma_c(S,\tau)$. It is also possible that the crosscorrelation function is calculated in between signals recorded with the same device but at orthogonal polarizations. This kind of arrangement is used in orthogonal polarization coding and in Faraday rotation measurements. 
 
 \section{Lag profiles}
 
@@ -301,14 +309,14 @@ where the measurement vector $\mathbf{m}_l$ is a column vector of measurements $
 \end{align}
 where $\mbox{\boldmath{$\Sigma$}}_l$ is the measurement error covariance matrix and $\mathbf{Q}_l$ is called Fisher information matrix. Posterior noise covariance matrix of the resolved lag profile is inverse matrix of the Fisher information matrix.
 
-This formal solution is not practical for real life lag profile inversion. Instead of directly forming the theory matrix special solvers, such as \verb|rlips|, are used which allow the theory matrix to be formed in smaller blocks.
+This formal solution is not practical for real life lag profile inversion. Instead of directly forming the theory matrix special solvers, which allow the theory matrix to be formed in smaller blocks, are used.
 
 \section{Additional analysis steps}
 
 
 \subsection{Ground clutter suppression}
 
-Although radar beams are nominally pointed towards the ``empty'' sky, there are always antenna sidelobes, some of which are pointed towards the terrain surrounding the radar transmitter. In monostatic radar systems this leaked signal may be reflected back towards the receiver antenna. The reflected signal may leak to the receiver through the same sidelobes, causing  echoes called ground clutter. The ground clutter may be much stronger than the true ionospheric signal and should be suppressed in low altitude ionospheric measurements. 
+Although radar beams are nominally pointed towards the ``empty'' sky, there are always antenna sidelobes, some of which are pointed towards the terrain surrounding the radar transmitter. In monostatic radar systems this leaked signal may be reflected back toward the receiver antenna. The reflected signal may leak to the receiver through the same sidelobes, causing  echoes called ground clutter. The ground clutter may be much stronger than the true ionospheric signal and should be suppressed in low altitude ionospheric measurements. 
 
 The ground clutter signal is possible to suppress because the scattering target is known to be stationary. It is thus possible to estimate an average clutter profile from voltage level data and to suppress it prior to correlation. 
 
@@ -323,27 +331,24 @@ Incoherent scatter spectrum in the ionospheric D region is rather narrow and it 
 
 \section{Resampling and filtering}
 
-Both transmitter and receiver samples are filtered and decimated to a common sample rate before lag profile inversion. Non-integer (but rational) fraction down sampling is supported. The resampling reduces to a boxcar filter if the filter length is a multiple of the original sample interval. 
+Samples of both transmitted and received signals are filtered and decimated to a common sample rate before lag profile inversion. Non-integer (but rational) fraction down sampling is supported. The resampling reduces to a boxcar filter if the filter length is a multiple of the original sample interval. 
 
 \section{Ground clutter suppression}
 
-LPI contains an optional ground clutter suppression algorithm. It uses statistical inversion for estimating the average backscatter at voltage level and subtracts the convolution of the estimated signal and the transmitter samples from the receiver samples. %This technique is essentially one of the options discussed in \citep{turunen00}. At the limit of identical transmitter pulses the technique can be shown to reduce to subtraction of an averaged clutter profile \citep{lehtinen02}.
-This technique is statistically optimal in the sense that only one clutter profile per integration period is produced, which allows it to be estimated with high accuracy. Increase in noise power due to clutter suppression is thus minimized. The long coherent integration could make the technique inefficient when the clutter source is not exactly stationary. On the other hand, the technique does not set any requirements for the transmitter modulation, which is very advantageous when it is combined e.g. with multi-purpose modulations.% \citep{virtanen08a,virtanen09}.
+LPI contains an optional ground clutter suppression algorithm. It uses statistical inversion for estimating the average backscatter at voltage level and subtracts the convolution of the estimated signal and the recorded transmission envelope from the samples of the received signal. This technique is statistically optimal in the sense that only one clutter profile per integration period is produced, which allows it to be estimated with high accuracy. Increase in noise power due to clutter suppression is thus minimized. The long coherent integration could make the technique inefficient when the clutter source is not exactly stationary. On the other hand, the technique does not set any requirements for the transmission modulation, which is very advantageous when it is combined e.g. with multi-purpose modulations.
 
 
 \section{Voltage level decoding filters}
 
-Voltage level decoding with given filter coefficients, as well as  both matched and inverse filters using measured transmission envelopes, are supported. With given coefficients both TX and RX data vectors are simply convolved with the given filter. 
-
-With the matched and inverse filters the filter coefficients are calculated from the TX data vectors and the decoding is performed one inter-pulse period at a time. The analysis should thus not continue above the range of the shortest IPP when the voltage level decoding is enabled.  The further analysis is performed assuming that the filter would have completely removed range ambiguities from the filtered data. As a consequence, lag profiles calculated with voltage level matched filter will generally contain range ambiguities. These ambiguities will be severy in true power profiles, but, depending on the applied modulation, may be neglectable at longer lags. 
+Voltage level decoding by means of matched filtering is supported. The filter coefficients are calculated from the TX data vectors and the decoding is performed one inter-pulse period at a time. Analysis of monostatic data should thus not continue above the range of the shortest IPP when the voltage level decoding is enabled.  The further analysis is performed assuming that the filter would have completely removed range ambiguities from the filtered data. As a consequence, lag profiles calculated with voltage level matched filter will generally contain range ambiguities. These ambiguities will be severy in true power profiles, but, depending on the applied modulation, may be neglectable at longer lags. 
 
 \section{Data correlation}
 
-Lag profile inversion requires two kinds of correlated data products to be produced: lagged products of the receiver samples and the range ambiguity functions. 
+Lag profile inversion requires two kinds of correlated data products to be produced: lagged products of samples of the received signal and the transmission envelope.
 
-The lagged products of the receiver samples can be trivially calculated from the filtered and decimated data. The range ambiguity functions can be calculated in a similar manner if the final sample interval is clearly shorter than modulation bit length, or if the applied modulation is a strong phase code. 
+The lagged products of the received signal can be trivially calculated from the filtered and decimated data. The range ambiguity functions can be calculated in a similar manner if the final sample interval is clearly shorter than modulation bit length, or if the applied modulation is a strong phase code. 
 
-Otherwise an approximation of the continuous transmission envelope is needed for calculating the range ambiguity function. LPI contains an option for interpolating the transmitter samples to higher sample rate before calculating the range ambiguity functions. When this option is enabled, the transmitter samples will be oversampled by factor of 11 by means of linear interpolation. The technique is not exactly optimal as the signal is first decimated and then imperfectly resampled, but it provides reasonably good range ambiguity function  estimates when the transmitted bits have relatively sharp edges. 
+Otherwise an approximation of the continuous transmission envelope is needed for calculating the range ambiguity function. LPI contains an option for interpolating the transmission envelope samples to higher sample rate before calculating the range ambiguity functions. When this option is enabled, the transmission samples will be oversampled by factor of 11 by means of linear interpolation. The technique is not exactly optimal as the signal is first decimated and then imperfectly resampled, but it provides reasonably good range ambiguity function  estimates when the transmitted bits have relatively sharp edges. Alternatively, one can use strong phase-code sequences, match sampling with bit length of the code, and omit the interpolation.
 
 \section{Theory matrix}
 
@@ -352,16 +357,19 @@ The inversion theory matrix is constructed in blocks whose size is given as an i
 
 \section{Lag profile inversion solvers}
 
-Altogether five different inverse problem solvers are supported.
+Following inverse problem solvers are supported.
 \begin{itemize}
-\item{\bf{rlips}} R Linear Inverse Problem Solver\footnote{\href{http://www.sgo.fi/~m/pages/rlips.html}{http://www.sgo.fi/~m/pages/rlips.html}}. This is the only solver that makes use of GPUs.
+\item{\bf{fishsr}} A simple inverse problem solver based on direct calculation of Fisher information matrix. Optimized version for the AVX-512 instruction set.
+\item{\bf{decor}} Variance-weighted decoding. Optimized version for the AVX-512 instruction set. 
 \item{\bf{fishs}} A simple inverse problem solver based on direct calculation of Fisher information matrix. 
-\item{\bf{deco}} Matched filter decoding of lag profiles with variance estimation.  Will lead to range ambiguities unless alternating codes or long cycles of random codes are used.
+\item{\bf{deco}} Variance-weighted decoding. 
 \item{\bf{ffts}} Lag profile inversion by means of FFT. Suitable for bistatic measurements, in which the limited beam intersection allows one to neglect problematic edge effects. Background noise suppression cannot be combined with ffts.
+\item{\bf{fftws}} Lag profile inversion by means of FFT. With the fast fftws library. 
 \item{\bf{dummy}} Dummy solver that calculates simple averages. Intended to be used together with voltage level decoding. Background noise suppression cannot be combined with dummy solver.
+\item{\bf{rlips}} R Linear Inverse Problem Solver. 
 \end{itemize}
 
-Only rlips, fishs, and deco require explicit theory matrix rows. When other solver are used the theory rows are not produced but the solvers operate directly on the correlated data vectors.
+Only fishsr, fishs, decor, and deco require explicit theory matrix rows. When other solver are used the theory rows are not produced but the solvers operate directly on the correlated data vectors.
 
 
 \section{Input and output control}
@@ -760,21 +768,6 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \newpage
 
-\subsection{LPIinitCluster.R}
-\lstinputlisting[style=myR]{../R/LPIinitCluster.R}
-
-\newpage
-
-\subsection{LPIinitRemoteNode.R}
-\lstinputlisting[style=myR]{../R/LPIinitRemoteNode.R}
-
-\newpage
-
-\subsection{LPIinitComputingSlaves.R}
-\lstinputlisting[style=myR]{../R/LPIinitComputingSlaves.R}
-
-\newpage
-
 \subsection{currentTimes.R}
 \lstinputlisting[style=myR]{../R/currentTimes.R}
 
@@ -785,8 +778,8 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \newpage
 
-\subsection{LPIsolve.acf.R}
-\lstinputlisting[style=myR]{../R/LPIsolve.acf.R}
+\subsection{LPIsolveACFfork.R}
+\lstinputlisting[style=myR]{../R/LPIsolveACFfork.R}
 
 \newpage
 
@@ -795,18 +788,13 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \newpage
 
-\subsection{LPIrun.remote.R}
-\lstinputlisting[style=myR]{../R/LPIrun.remote.R}
-
-\newpage
-
-\subsection{LPIrun.R}
-\lstinputlisting[style=myR]{../R/LPIrun.R}
-
-\newpage
-
 \subsection{initLPIenv.R}
 \lstinputlisting[style=myR]{../R/initLPIenv.R}
+
+\newpage
+
+\subsection{initLPIenvR.R}
+\lstinputlisting[style=myR]{../R/initLPIenvR.R}
 
 \newpage
 
@@ -815,8 +803,26 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \newpage
 
+\subsection{zzz.R}
+\lstinputlisting[style=myR]{../R/zzz.R}
+
+
+\newpage
+
 
 \section{Signal pre- and post-processing}
+
+\subsection{readInputData.R}
+\lstinputlisting[style=myR]{../R/readInputData.R}
+
+\newpage
+
+
+\subsection{resample.R}
+\lstinputlisting[style=myR]{../R/resample.R}
+
+\newpage
+
 
 \subsection{prepareLPIdata.R}
 \lstinputlisting[style=myR]{../R/prepareLPIdata.R}
@@ -833,6 +839,16 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \newpage
 
+\subsection{decoFilter2.R}
+\lstinputlisting[style=myR]{../R/decoFilter2.R}
+
+\newpage
+
+\subsection{indexAdjust.R}
+\lstinputlisting[style=myR]{../R/indexAdjust.R}
+
+\newpage
+
 \subsection{LPIaveragePower.R}
 \lstinputlisting[style=myR]{../R/LPIaveragePower.R}
 
@@ -843,8 +859,15 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \newpage
 
+\subsection{mixFrequency.R}
+\lstinputlisting[style=myR]{../R/mixFrequency.R}
+
+\newpage
+
 \subsection{stripACF.R}
 \lstinputlisting[style=myR]{../R/stripACF.R}
+
+
 
 
 \newpage
@@ -895,6 +918,21 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \newpage
 
+\subsection{fishsr.init.R}
+\lstinputlisting[style=myR]{../R/fishsr.init.R}
+
+\newpage
+
+\subsection{fishsr.add.R}
+\lstinputlisting[style=myR]{../R/fishsr.add.R}
+
+\newpage
+
+\subsection{fishsr.solve.R}
+\lstinputlisting[style=myR]{../R/fishsr.solve.R}
+
+\newpage
+
 \subsection{deco.init.R}
 \lstinputlisting[style=myR]{../R/deco.init.R}
 
@@ -907,6 +945,21 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \subsection{deco.solve.R}
 \lstinputlisting[style=myR]{../R/deco.solve.R}
+
+\newpage
+
+\subsection{decor.init.R}
+\lstinputlisting[style=myR]{../R/decor.init.R}
+
+\newpage
+
+\subsection{decor.add.R}
+\lstinputlisting[style=myR]{../R/decor.add.R}
+
+\newpage
+
+\subsection{decor.solve.R}
+\lstinputlisting[style=myR]{../R/decor.solve.R}
 
 \newpage
 
@@ -940,6 +993,21 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \newpage
 
+\subsection{fftws.init.R}
+\lstinputlisting[style=myR]{../R/fftws.init.R}
+
+\newpage
+
+\subsection{fftws.add.R}
+\lstinputlisting[style=myR]{../R/fftws.add.R}
+
+\newpage
+
+\subsection{fftws.solve.R}
+\lstinputlisting[style=myR]{../R/fftws.solve.R}
+
+\newpage
+
 \subsection{rlips.solve2.R}
 \lstinputlisting[style=myR]{../R/rlips.solve2.R}
 
@@ -950,6 +1018,12 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 
 \section{C functions and headers}
+
+
+\subsection{src/Makevars}
+\lstinputlisting[style=myC]{../src/Makevars}
+
+\newpage
 
 \subsection{src/LPI.h}
 \lstinputlisting[style=myC]{../src/LPI.h}
@@ -978,11 +1052,20 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \subsection{deco\_add.c}
 \lstinputlisting[style=myC]{../src/deco_add.c}
+\newpage
+
+\subsection{decor\_add.c}
+\lstinputlisting[style=myC]{../src/decor_add.c}
 
 \newpage
 
 \subsection{fishs\_add.c}
 \lstinputlisting[style=myC]{../src/fishs_add.c}
+
+\newpage
+
+\subsection{fishsr\_add.c}
+\lstinputlisting[style=myC]{../src/fishsr_add.c}
 
 \newpage
 
@@ -1028,6 +1111,10 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 \subsection{theory\_rows.c}
 \lstinputlisting[style=myC]{../src/theory_rows.c}
+\newpage
+
+\subsection{theory\_rows\_r.c}
+\lstinputlisting[style=myC]{../src/theory_rows_r.c}
 
 \newpage
 
@@ -1036,6 +1123,8 @@ The main analysis loop. All user control of LPI takes place via input arguments 
 
 
 
+
+ 
 
 
 
