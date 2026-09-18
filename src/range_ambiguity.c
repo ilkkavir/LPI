@@ -116,10 +116,10 @@ SEXP range_ambiguity( SEXP cdata1 , SEXP cdata2 , SEXP idata1 , SEXP idata2 , SE
   }
 
   // Free the temporary vectors
-  Free(tmpr1);
-  Free(tmpi1);
-  Free(tmpr2);
-  Free(tmpi2);
+  R_Free(tmpr1);
+  R_Free(tmpi1);
+  R_Free(tmpr2);
+  R_Free(tmpi2);
 
   UNPROTECT(1);
 

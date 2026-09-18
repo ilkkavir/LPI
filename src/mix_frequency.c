@@ -153,8 +153,8 @@ SEXP mix_frequency( SEXP cdata , SEXP ndata , SEXP frequency)
   }
 
   // Free the memory allocated for the coefficient tables
-  Free(coefr);
-  Free(coefi);
+  R_Free(coefr);
+  R_Free(coefi);
 
   // Remove protection from the return value
   UNPROTECT(1);

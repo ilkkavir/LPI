@@ -181,9 +181,9 @@ SEXP average_profile( SEXP cdata , SEXP idata , SEXP ndata , SEXP N_CODE)
   }
 
   // Free the temporary vectors
-  Free(nave);
-  Free(aver);
-  Free(avei);
+  R_Free(nave);
+  R_Free(aver);
+  R_Free(avei);
 
   UNPROTECT(1);
 

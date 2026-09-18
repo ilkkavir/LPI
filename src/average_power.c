@@ -324,10 +324,10 @@ SEXP average_power( SEXP cdata , SEXP idatatx , SEXP idatarx , SEXP ndata , SEXP
   pd[0] = (float)pindmax / (float)nedges;
 
   // Free the temporary allocations
-  Free(ptmp);
-  Free(nsamp);
-  Free(pinds);
-  Free(pedges);
+  R_Free(ptmp);
+  R_Free(nsamp);
+  R_Free(pinds);
+  R_Free(pedges);
  
   UNPROTECT(1);
   return(pdata);
